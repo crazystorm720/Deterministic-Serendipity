@@ -1,7 +1,7 @@
 # 🔍 MMS-DuoFilter  
 *Bidirectional Android Message Thread Extraction*  
 
-**Extract ~~court-ready~~ SMS/MMS threads between two numbers**—*without* manual redaction or privacy risks. *because why not!?*
+**Extract ~~court-ready~~ SMS/MMS threads between two numbers**—*without* manual redaction or privacy risks using [Synctech](https://www.synctech.com.au/sms-backup-restore/). *because why not!?*
 
 ```bash
 # Concept (language-agnostic)
