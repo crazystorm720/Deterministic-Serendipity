@@ -1,4 +1,4 @@
-# this may be a lot to understand - luckily LLMs do a pretty good job at understanding inputs like these:
+# this may be a lot to look through and it is - luckily LLMs do a pretty good job at understanding inputs like these:
 
 ## 🔍 MMS-DuoFilter
 *Bidirectional Android Message Thread Extraction*  
