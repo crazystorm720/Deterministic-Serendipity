@@ -1,6 +1,3 @@
-Here's a polished version of your markdown file with improved organization, clearer structure, and more professional presentation while preserving all the technical details:
-
----
 # MMS-DuoFilter: Precise SMS/MMS Thread Extraction
 
 ## Overview
