@@ -1,4 +1,6 @@
-# 🔍 MMS-DuoFilter  
+# this may be a lot to understand - luckily LLMs do a pretty good job at understanding inputs like these:
+
+## 🔍 MMS-DuoFilter
 *Bidirectional Android Message Thread Extraction*  
 
 **Extract SMS/MMS threads between two numbers**—*without* manual redaction or privacy risks using [Synctech](https://www.synctech.com.au/sms-backup-restore/). *because why not!?*
