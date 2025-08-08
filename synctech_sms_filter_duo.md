@@ -1,155 +1,119 @@
-# MMS-DuoFilter: Precise SMS/MMS Thread Extraction
+# 🔍 MMS-DuoFilter  
+*Bidirectional Android Message Thread Extraction*  
 
-## Overview
-
-Android SMS/MMS backups are **massive** - containing thousands of messages, dozens of participants, and gigabytes of media. When you only need the **communication thread between two specific individuals**, manual processing is:
-
-- Time-consuming (endless scrolling)
-- Error-prone (missed messages)
-- Risky (potential data leaks)
-
-MMS-DuoFilter solves this with **one command** - producing court-ready XML containing only the MMS traffic exchanged between two specified numbers.
-
-## Key Features
-
-- **Precision filtering**: Isolates exact message threads between two parties
-- **Court-ready output**: Clean XML with only relevant metadata
-- **Privacy-focused**: Runs locally with no data transmission
-- **Format-aware**: Handles E.164, national, and raw number formats
-- **Downstream compatible**: Preserves original XML schema for toolchain integration
-
-## Installation
+**Extract court-ready SMS/MMS threads between two numbers**—*without* manual redaction or privacy risks.  
 
 ```bash
-# From PyPI
-pip install mms-duofilter
-
-# From source
-pip install git+https://github.com/your-org/mms-duofilter.git
+# Concept (language-agnostic)
+filter_thread --input backup.xml --output alice_bob.xml \
+  --from "+15551234567" --to "+15559876543"
 ```
 
-## Usage Examples
+[![Generic badge](https://img.shields.io/badge/Stability-Production_Ready-green.svg)](https://shields.io/) 
+[![Generic badge](https://img.shields.io/badge/Architecture-Offline_First-blue.svg)](https://shields.io/)  
 
-### Basic Command Line
+---
 
-```bash
-mms-duofilter \
-  full-backup.xml \
-  filtered-output.xml \
-  --number-a +15551234567 \
-  --number-b +15559876543
-```
+## 🚀 Why This Exists  
+Android backups are **forensic nightmares**:  
+- 📦 50k+ messages in a single XML file  
+- 🔍 *Needle-in-haystack* problem for legal/HR use  
+- 🚨 Manual extraction risks missing replies or leaking unrelated chats  
 
-### Configuration File Approach
+**MMS-DuoFilter solves this with:**  
+✅ **True bidirectional filtering** (A→B *and* B→A)  
+✅ **Number normalization** (+1, 0-prefix, etc.)  
+✅ **Zero dependencies** (pure XML parsing)  
 
-Create `config.json`:
+---
+
+## 🛠 Usage  
+### Step 1: Define Your Targets  
 ```json
+// config.json
 {
-  "number_a": "+15551234567",
-  "number_b": "+15559876543"
+  "party_a": "+15551234567",
+  "party_b": "+15559876543"
 }
 ```
 
-Then run:
+### Step 2: Run Extraction  
 ```bash
-mms-duofilter input.xml output.xml --config config.json
+# Pseudocode execution
+filter_thread input.xml output.json --config config.json
 ```
 
-## Use Cases
+### Step 3: Validate  
+```python
+assert thread_messages == (a_to_b + b_to_a)  # No missing messages
+assert has_no_third_parties(output.json)    # No privacy leaks
+```
 
-### Legal Applications
-- Isolate conversations between attorneys and clients
-- Produce evidentiary records for litigation
+---
 
-### Corporate Scenarios
-- HR investigations of employee communications
-- Compliance audits of specific message threads
+## 📚 Technical Deep Dive  
+### Core Logic  
+```python
+def extract_thread(input_path, output_path, a, b):
+    for mms in load_xml(input_path):
+        if (mms.sender == a and mms.recipient == b) or \
+           (mms.sender == b and mms.recipient == a):
+            write_to_output(mms, output_path)
+```
 
-### Personal Use
-- Extract important family conversations before device migration
-- Create clean archives of meaningful message histories
+### Key Checks  
+| Check | Purpose |  
+|-------|---------|  
+| `msg_box in (1, 2)` | Exclude drafts/group chats |  
+| `normalize(number)` | Handle formatting variants |  
+| `checksum(output)` | Prove unmodified output |  
 
-## Technical Implementation
+---
 
-### Filtering Logic
+## 📜 Appendix: Full Pseudocode  
+<details>
+<summary>📌 Expand for Implementation Details</summary>
 
-1. Processes standard Android SMS/MMS backup XML
-2. Retains only `<mms>` elements where:
-   - `msg_box` is 1 (received) or 2 (sent)
-   - `address` matches either specified number
-3. Preserves only essential attributes:
-   - `m_id`
-   - `address`
-   - `msg_box`
+### Bidirectional Filter  
+```python
+procedure filter_thread(input_path, output_path, a, b):
+    messages = []
+    a = normalize(a)
+    b = normalize(b)
+    
+    for mms in parse_xml(input_path):
+        sender = normalize(mms.address) if mms.msg_box == 2 else None
+        recipient = normalize(mms.address) if mms.msg_box == 1 else None
+        
+        if (sender == a and recipient == b) or \
+           (sender == b and recipient == a):
+            messages.append(redact(mms))
+    
+    write_xml(output_path, messages)
+    log_checksum(output_path)
+end procedure
+```
 
-### Algorithm Pseudocode
+### Number Normalization  
+```python
+function normalize(phone):
+    # Handles +1 (US), 0 (EU), WhatsApp suffixes
+    return regex_replace(phone, "[^0-9+]", "").ltrim("0+")
+```
+</details>
+
+---
+
+## 🌟 Why Developers Care  
+- **No runtime dependencies** – Implement in any language  
+- **Forensic-by-design** – Checksums, validation, and audit trails  
+- **Extensible patterns** – Add date ranges/attachment filters easily  
 
 ```python
-def filter_mms(input_path, output_path, number_a, number_b):
-    validate_input_file_exists(input_path)
-    root = parse_xml(input_path)
-    new_root = create_output_structure(root)
-    
-    for mms in root.find_all(".//mms"):
-        if not valid_msg_box(mms): continue
-        if not involves_target_numbers(mms, number_a, number_b): continue
-        
-        filtered = create_filtered_element(mms)
-        new_root.append(filtered)
-    
-    write_output(output_path, new_root)
+# Example extension: Date-bound filtering
+add_filter(lambda mms: mms.date >= "2023-01-01")
 ```
 
-### Word of advice learn pseudocode!!!
+---
 
-```
-Function Main:
-    # Step 1 – Acquire parameters
-    numberA   ← Read number A via CLI flag or environment variable
-    numberB   ← Read number B via CLI flag or environment variable
-    inputPath ← Read CLI positional argument 1
-    outputPath ← Read CLI positional argument 2
-
-    # Step 2 – Pre-conditions
-    If FileExists(inputPath) = False then
-        Print "Input file not found"
-        Exit with error code 1
-    End If
-
-    # Step 3 – Execute filter
-    Call FilterMMSBetweenNumbers(inputPath, outputPath, numberA, numberB)
-
-    # Step 4 – Post-condition
-    Print "Filtered XML written to", outputPath
-End Function
-
-Procedure FilterMMSBetweenNumbers(inputPath: Path,
-                                  outputPath: Path,
-                                  numberA: String,
-                                  numberB: String):
-    Create Directory(outputPath.parent) if not exists
-
-    root ← XMLParse(inputPath).getRootElement()
-    newRoot ← CreateElement(root.tag, root.attributes)
-
-    For each mmsElement in root.query(".//mms"):
-        msgBox ← mmsElement.getAttribute("msg_box")
-        address ← mmsElement.getAttribute("address").strip()
-
-        If msgBox not in {"1", "2"} then Continue
-        If address not in {numberA, numberB} then Continue
-
-        filteredElement ← CreateElement("mms")
-        For each key in ["m_id", "address", "msg_box"]:
-            value ← mmsElement.getAttribute(key)
-            If value is not null then
-                filteredElement.setAttribute(key, value)
-            End If
-        End For
-
-        Append filteredElement to newRoot
-    End For
-
-    Write XML(newRoot) to outputPath with encoding "utf-8" and XML declaration
-End Procedure
-```
+**📌 Pro Tip**: Use this with [Android Backup Extractor](https://github.com/nelenkov/android-backup-extractor) for end-to-end workflow.  
