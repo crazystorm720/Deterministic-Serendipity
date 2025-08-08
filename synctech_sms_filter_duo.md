@@ -1,108 +1,110 @@
-MMS-DuoFilter  
-README.md (polished)
+Here's a polished version of your markdown file with improved organization, clearer structure, and more professional presentation while preserving all the technical details:
 
 ---
+# MMS-DuoFilter: Precise SMS/MMS Thread Extraction
 
-### Why this exists  
-Android SMS/MMS backups are **giants**: thousands of messages, dozens of participants, gigabytes of media.  
-When you only need the **thread between two people**, scrolling or manual redaction is slow, error-prone, and risky.
+## Overview
 
-MMS-DuoFilter solves that in **one command**.  
-Feed it the original backup and two phone numbers; get back a **concise, court-ready XML** containing *only* the MMS traffic exchanged between those two numbers.
+Android SMS/MMS backups are **massive** - containing thousands of messages, dozens of participants, and gigabytes of media. When you only need the **communication thread between two specific individuals**, manual processing is:
 
----
+- Time-consuming (endless scrolling)
+- Error-prone (missed messages)
+- Risky (potential data leaks)
 
-### Quick start (30-second demo)
+MMS-DuoFilter solves this with **one command** - producing court-ready XML containing only the MMS traffic exchanged between two specified numbers.
 
-```plaintext
+## Key Features
+
+- **Precision filtering**: Isolates exact message threads between two parties
+- **Court-ready output**: Clean XML with only relevant metadata
+- **Privacy-focused**: Runs locally with no data transmission
+- **Format-aware**: Handles E.164, national, and raw number formats
+- **Downstream compatible**: Preserves original XML schema for toolchain integration
+
+## Installation
+
+```bash
+# From PyPI
+pip install mms-duofilter
+
+# From source
+pip install git+https://github.com/your-org/mms-duofilter.git
+```
+
+## Usage Examples
+
+### Basic Command Line
+
+```bash
 mms-duofilter \
-  sms-backup-2024.xml \
-  alice-bob-thread.xml \
+  full-backup.xml \
+  filtered-output.xml \
   --number-a +15551234567 \
   --number-b +15559876543
 ```
 
-Open `alice-bob-thread.xml`—you’ll see **every MMS** they sent or received, nothing else.
+### Configuration File Approach
 
----
-
-### When you’d actually use it
-
-* **Legal hold**: isolate conversations between opposing counsel and a client.  
-* **HR investigations**: pull the exact multimedia thread between two employees.  
-* **Personal archives**: extract a decade-long family group-chat before switching phones.
-
----
-
-### Under the hood
-
-* Pure Python 3—no external services, no data leaves your machine.  
-* Preserves original XML schema so downstream tools keep working.  
-* Handles E.164, national, or even raw 10-digit variants transparently.
-
----
-
-### Install & run
-
-```bash
-pip install mms-duofilter           # PyPI
-# or
-pip install git+https://github.com/your-org/mms-duofilter.git
-
-mms-duofilter --help
-```
-
-Need reproducible results?  
-Pin the numbers in a small JSON file:
-
+Create `config.json`:
 ```json
-{"number_a": "+15551234567", "number_b": "+15559876543"}
+{
+  "number_a": "+15551234567",
+  "number_b": "+15559876543"
+}
 ```
 
-and run:
-
+Then run:
 ```bash
-mms-duofilter backup.xml filtered.xml --config numbers.json
+mms-duofilter input.xml output.xml --config config.json
 ```
 
----
+## Use Cases
 
-Precision Pseudocode – MMS Filter Between Two Numbers
-────────────────────────────────────────
+### Legal Applications
+- Isolate conversations between attorneys and clients
+- Produce evidentiary records for litigation
 
-# 1.  Problem Contract
-Filter an Android SMS/MMS backup XML so that only `<mms>` elements exchanged
-between two explicitly-supplied phone numbers (Number-A and Number-B) are
-retained, provided the message box is exactly 1 (received) or 2 (sent).  
-The output XML must contain only the attributes `m_id`, `address`, and `msg_box`.
+### Corporate Scenarios
+- HR investigations of employee communications
+- Compliance audits of specific message threads
 
-# 2.  Literal Definitions
+### Personal Use
+- Extract important family conversations before device migration
+- Create clean archives of meaningful message histories
+
+## Technical Implementation
+
+### Filtering Logic
+
+1. Processes standard Android SMS/MMS backup XML
+2. Retains only `<mms>` elements where:
+   - `msg_box` is 1 (received) or 2 (sent)
+   - `address` matches either specified number
+3. Preserves only essential attributes:
+   - `m_id`
+   - `address`
+   - `msg_box`
+
+### Algorithm Pseudocode
+
+```python
+def filter_mms(input_path, output_path, number_a, number_b):
+    validate_input_file_exists(input_path)
+    root = parse_xml(input_path)
+    new_root = create_output_structure(root)
+    
+    for mms in root.find_all(".//mms"):
+        if not valid_msg_box(mms): continue
+        if not involves_target_numbers(mms, number_a, number_b): continue
+        
+        filtered = create_filtered_element(mms)
+        new_root.append(filtered)
+    
+    write_output(output_path, new_root)
 ```
-Variable: numberA      Type: String  # first phone number (E.164 form)
-Variable: numberB      Type: String  # second phone number (E.164 form)
-Variable: inputPath    Type: Path   # absolute path to source XML
-Variable: outputPath   Type: Path   # absolute path to write filtered XML
-```
 
-# 3.  High-level Control Flow
-```
-Procedure FilterMMSBetweenNumbers(inputPath, outputPath, numberA, numberB)
-    Validate inputPath exists
-    Create output directory if not exists
-    Parse XML from inputPath → root
-    Create newRoot with same tag and attributes as root
-    For each mmsElement in root.findall(".//mms")
-        If mmsElement.msg_box not in {"1", "2"} then Continue
-        If mmsElement.address not in {numberA, numberB} then Continue
-        Create filteredElement of type <mms>
-        For each attributeKey in {"m_id", "address", "msg_box"}
-            Copy attributeKey from mmsElement to filteredElement
-        Append filteredElement to newRoot
-    Write newRoot to outputPath with XML declaration
-End Procedure
-```
+### Word of advice learn pseudocode!!!
 
-# 4.  Detailed Pseudocode
 ```
 Function Main:
     # Step 1 – Acquire parameters
