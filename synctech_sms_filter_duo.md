@@ -1,7 +1,7 @@
 # 🔍 MMS-DuoFilter  
 *Bidirectional Android Message Thread Extraction*  
 
-**Extract court-ready SMS/MMS threads between two numbers**—*without* manual redaction or privacy risks.  
+**Extract ~~court-ready~~ SMS/MMS threads between two numbers**—*without* manual redaction or privacy risks. *because why not!?*
 
 ```bash
 # Concept (language-agnostic)
@@ -70,7 +70,7 @@ def extract_thread(input_path, output_path, a, b):
 
 ---
 
-## 📜 Appendix: Full Pseudocode  
+## 📜 Logic: Pseudocode  
 <details>
 <summary>📌 Expand for Implementation Details</summary>
 
@@ -116,4 +116,134 @@ add_filter(lambda mms: mms.date >= "2023-01-01")
 
 ---
 
-**📌 Pro Tip**: Use this with [Android Backup Extractor](https://github.com/nelenkov/android-backup-extractor) for end-to-end workflow.  
+**📌 Pro Tip**: Use this with [Android Backup Extractor](https://github.com/nelenkov/android-backup-extractor) for end-to-end workflow.
+
+---
+
+# **MMS-DuoFilter: Pseudocode Specification**  
+*For Forensic Message Thread Extraction*
+
+## **1. Core Data Structures**
+```python
+// Represents a single MMS record with forensic requirements
+struct MMS:
+    string    m_id       // Universally unique message ID
+    string    address    // Normalized E.164 phone number
+    integer   msg_box    // 1=received, 2=sent
+    timestamp date       // ISO 8601 UTC
+    string[]  parts      // Multimedia attachments
+end struct
+
+// Thread extraction request
+struct Request:
+    string    input_path  // Path to source XML
+    string    output_path // Path for filtered output
+    string    party_a     // Normalized number
+    string    party_b     // Normalized number
+    string    config_hash // SHA-256 of config
+end struct
+```
+
+## **2. Main Algorithm**
+```python
+// @Precondition: input_path exists and is valid XML
+// @Precondition: party_a != party_b
+// @Postcondition: output_path contains only A↔B messages
+// @Complexity: O(n) where n = number of MMS in input
+procedure ExtractThread(Request r):
+    // Phase 1: Input Validation
+    if not FileExists(r.input_path):
+        throw FileNotFoundError
+    if not IsValidE164(r.party_a) or not IsValidE164(r.party_b):
+        throw InvalidNumberFormatError
+    
+    // Phase 2: Normalization
+    a_normalized ← NormalizeNumber(r.party_a)
+    b_normalized ← NormalizeNumber(r.party_b)
+    
+    // Phase 3: Filtering
+    output_mms = []
+    for mms in ParseXML(r.input_path):
+        if not IsRelevantMMS(mms, a_normalized, b_normalized):
+            continue
+        output_mms.append(RedactMMS(mms))
+    
+    // Phase 4: Output
+    WriteXML(r.output_path, output_mms)
+    WriteChecksum(r.output_path + ".sha256")
+end procedure
+```
+
+## **3. Critical Helper Functions**
+```python
+// @Precondition: number is non-empty string
+// @Postcondition: returns E.164 without formatting
+function NormalizeNumber(string number) → string:
+    normalized ← RegexReplace(number, "[^0-9+]", "")
+    // Handle country codes
+    if normalized starts with "0":
+        return "+1" + normalized[1:]  // Example: EU → US format
+    return normalized
+end function
+
+// @Precondition: mms.msg_box ∈ {1, 2}
+// @Postcondition: returns true iff A↔B message
+function IsRelevantMMS(MMS mms, string a, string b) → bool:
+    if mms.msg_box == 1:  // Received
+        return NormalizeNumber(mms.address) == a
+    else if mms.msg_box == 2:  // Sent
+        return NormalizeNumber(mms.address) == b
+    return false
+end function
+```
+
+## **4. Forensic Integrity Checks**
+```python
+// @Precondition: output file exists
+// @Postcondition: throws if chain of custody broken
+procedure VerifyOutput(Request r):
+    expected_count ← CountMessages(r.input_path, r.party_a, r.party_b)
+    actual_count ← CountMessages(r.output_path)
+    
+    if expected_count != actual_count:
+        throw ForensicIntegrityError(
+            "Message count mismatch: expected %d, got %d" 
+            % (expected_count, actual_count))
+    
+    if not ValidateChecksum(r.output_path):
+        throw TamperDetectionError("Output checksum invalid")
+end procedure
+```
+
+## **5. Complexity Analysis**
+| Component               | Time Complexity | Space Complexity |
+|-------------------------|-----------------|------------------|
+| XML Parsing             | O(n)            | O(m)             | 
+| Number Normalization    | O(1) per number | O(1)             |
+| Thread Filtering        | O(n)            | O(k)             | 
+| Checksum Calculation    | O(k)            | O(1)             |
+
+Where:  
+- **n** = Total MMS in input  
+- **m** = Max XML depth  
+- **k** = Relevant MMS count  
+
+## **6. Failure Modes**
+```python
+enum ErrorCode:
+    FILE_NOT_FOUND
+    INVALID_XML
+    NUMBER_NORMALIZATION_FAILURE
+    FORENSIC_TAMPER_DETECTED
+    OUTPUT_VALIDATION_FAILED
+end enum
+
+// Standardized error handling
+procedure HandleError(ErrorCode code, string message):
+    LogError(code, message, GetSystemTime())
+    if code == FORENSIC_TAMPER_DETECTED:
+        HaltExecution()  // Fail-fast for integrity violations
+end procedure
+```
+
+---
