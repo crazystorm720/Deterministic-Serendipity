@@ -5,6 +5,8 @@ The Clock-face /24
 .129 – .254 → mirrored DHCP hand (dynamic allocation)
 Primes (.11, .13, .17…) within any range are intentionally empty.
 
+---
+
 Role Keys (white keys only)
 C Core (router / firewall)
 D Data (DB / storage)
@@ -14,11 +16,15 @@ G GitOps (CI / runners)
 A App server
 B Backup
 
+---
+
 Zone Palette (Mondrian colours)
 infra (black) – infrastructure control plane
 lan (red) – trusted internal LAN
 dmz (blue) – public / untrusted
 guest (yellow) – lab / throw-away
+
+---
 
 Hostname Grammar
 -..mycorp.net
@@ -27,6 +33,8 @@ Hostname Grammar
 • zone = one of the four colours
 
 Example full rectangle: F-05.lan.mycorp.net
+
+---
 
 Homelab Metal Map (static hand)
 .1 F-01.lan Dell-1 (KVM)
@@ -39,6 +47,8 @@ Homelab Metal Map (static hand)
 .8 P-03.lan Pi-3 (3-D printer)
 .9 P-04.lan Pi-4 (UPS probe)
 .11 (silent prime – leave empty)
+
+---
 
 Fleet & Containers
 • Will auto-lease mirrored hand (.129-254).
