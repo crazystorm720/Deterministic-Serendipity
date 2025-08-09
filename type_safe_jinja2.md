@@ -1,7 +1,3 @@
-Here’s a refined version of your document with improved clarity, flow, and impact. I've tightened the language, fixed minor inconsistencies, and enhanced the structure for better readability:
-
----
-
 # **Type-Safe Configuration Generation: CUE + Jinja2**  
 *A guide to combining CUE (validation) and Jinja2 (templating) for runtime-safe, dynamic configuration.*  
 
