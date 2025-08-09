@@ -207,15 +207,6 @@ firewall2:
 
 ---
 
-### **Alternatives Compared**
-| Tool          | Type Safety | Templating | Runtime Checks |
-|---------------|------------|------------|----------------|
-| **Raw Jinja2** | ❌ No      | ✅ Yes      | ❌ No           |
-| **Jsonnet**   | ✅ Yes      | ✅ Yes      | ❌ No           |
-| **CUE+Jinja2**| ✅ Yes      | ✅ Yes      | ✅ Yes          |
-
----
-
 ### **When to Use This**
 - You need **dynamic templates** (Jinja2) but **strict validation** (CUE).
 - You’re generating **network configs**, **Kubernetes manifests**, etc.
