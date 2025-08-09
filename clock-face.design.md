@@ -1,3 +1,4 @@
+```plaintext
 The Clock-face /24
 192.168.42.0/24
 .1 – .12 → static metal (core infrastructure)
@@ -53,5 +54,6 @@ Homelab Metal Map (static hand)
 Fleet & Containers
 • Will auto-lease mirrored hand (.129-254).
 • Names follow same grammar: A-17.lan, D-31.dmz, etc.
+---
 
 #Homelab #DevOps #Networking #NetworkDesign #Kubernetes
