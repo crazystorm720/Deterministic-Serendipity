@@ -277,6 +277,146 @@ State Management:
 
 ### **1. Page Load Sequence**
 
+
+---
+
+
+--------------------------------------------------------------------
+1. When dnsmasq is the right tool
+--------------------------------------------------------------------
+• Small / medium networks (≤ a few hundred hosts per subnet).  
+• You need both DHCP and DNS and want the two to stay in sync automatically (lease → A/AAAA record).  
+• You do NOT need sub-second DHCP failover or thousands of leases; if you do, look at KEA-DHCP instead .
+
+If those bullets fit, dnsmasq is an excellent lightweight choice.
+
+--------------------------------------------------------------------
+2. One file per scope / zone (best-practice layout)
+--------------------------------------------------------------------
+```
+/etc/dnsmasq.d/
+├── 00-global.conf          # upstream DNS, log settings
+├── 10-mgmt.conf            # management VLAN 10
+├── 20-guest.conf           # guest VLAN 20
+├── 30-iot.conf             # IoT VLAN 30
+└── 99-static-maps.conf     # MAC→IP overrides for all subnets
+```
+This keeps each scope small, readable, and under version control.
+
+```
+/etc/linux-decades/
+├── 00_bootstrap/
+│   ├── 00_00_installer_seed.cfg          # preseed / cloud-init
+│   ├── 00_10_register_debian_mirror.sh   # sources.list generator
+│   └── 00_20_first_boot_update.sh
+├── 10_system/
+│   ├── 10_00_hostname_timezone.sh
+│   ├── 10_10_ntp_chrony.conf
+│   ├── 10_20_dns_resolved.conf
+│   └── 10_30_sysctl_hardening.conf
+├── 20_identity/
+│   ├── 20_00_users_groups.yml          # Ansible / plain YAML for loop
+│   ├── 20_10_sudoers.d/                # one file per rule
+│   ├── 20_20_sshd_config_fragment.conf
+│   └── 20_30_authorized_keys/          # keys by username
+├── 30_storage/
+│   ├── 30_00_luks_btrfs_subvols.sh
+│   ├── 30_10_lvm_thinpool.sh
+│   ├── 30_20_fstab_mounts.conf
+│   └── 30_30_zram_generator.conf
+├── 40_packages/
+│   ├── 40_00_sources_list_debian.sh
+│   ├── 40_10_essential_packages.lst
+│   ├── 40_20_backports_pin.pref
+│   └── 40_30_flatpak_remote.sh
+├── 50_services/
+│   ├── 50_00_unit_templates/
+│   │   ├── backup@.service
+│   │   └── podman@.service
+│   └── 50_10_enable_units.sh          # systemctl preset-all helper
+├── 60_runtime/
+│   ├── 60_00_nginx_sites/
+│   ├── 60_10_postgres_conf.d/
+│   ├── 60_20_logrotate_d/
+│   └── 60_30_cron_dropins/
+├── 70_performance/
+│   ├── 70_00_cgroup_v2_enable.sh
+│   ├── 70_10_cpu_governor.sh
+│   ├── 70_20_irqbalance_ban.conf
+│   └── 70_30_tuned_profile.conf
+├── 80_security/
+│   ├── 80_00_nftables_rules.nft
+│   ├── 80_10_fail2ban_jail.local
+│   ├── 80_20_apparmor_profiles/
+│   └── 80_30_aide_daily.timer
+└── 90_local/
+    ├── 90_00_site_overrides.sh
+    └── 99_zz_last_minute_fix.sh
+```
+
+--------------------------------------------------------------------
+3. Minimal global file (00-global.conf)
+--------------------------------------------------------------------
+```
+# Only answer on the internal NICs
+interface=eno1
+interface=eno2
+bind-interfaces
+
+# Upstream resolvers
+no-resolv
+server=1.1.1.1
+server=8.8.8.8
+
+# DNS search suffix handed out to every client
+domain=my.lab
+expand-hosts
+
+# Lease file & logging
+dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+log-dhcp                # turn off in production if log volume is high
+```
+
+--------------------------------------------------------------------
+4. Example per-scope file (10-mgmt.conf)
+--------------------------------------------------------------------
+```
+# Tag every request that matches this range
+dhcp-range=set:mgmt,192.168.10.50,192.168.10.199,255.255.255.0,24h
+
+# Gateway and DNS for this subnet only
+dhcp-option=tag:mgmt,3,192.168.10.1
+dhcp-option=tag:mgmt,6,192.168.10.2     # this dnsmasq box
+
+# Extra routes (optional)
+dhcp-option=tag:mgmt,121,10.100.0.0/24,192.168.10.1
+```
+The same pattern is repeated for 20-guest.conf, 30-iot.conf, etc.  
+Each file is independent; you can reload or even move them to a second server without touching the others .
+
+--------------------------------------------------------------------
+5. Static reservations (99-static-maps.conf)
+--------------------------------------------------------------------
+```
+# Printers, servers, APs, etc.
+dhcp-host=aa:bb:cc:11:22:33,set:mgmt,192.168.10.10,infinite
+dhcp-host=aa:bb:cc:44:55:66,set:iot,192.168.30.77,infinite
+```
+Using the `set:<tag>` syntax keeps the host in the correct subnet and inherits the subnet-specific options automatically.
+
+--------------------------------------------------------------------
+6. Authoritative vs. split-scope HA
+--------------------------------------------------------------------
+• Single server: add `dhcp-authoritative` to 00-global.conf.  
+• Two-server HA: run a second dnsmasq with a **non-overlapping pool** and add `dhcp-reply-delay=30` on the secondary so it only answers if the primary is dead .
+
+--------------------------------------------------------------------
+7. DNS integration tricks
+--------------------------------------------------------------------
+• Because every lease automatically creates a DNS record, you can reach every host by short name (`ping printer1`) or FQDN (`ping printer1.my.lab`).  
+• If you later need “real” DNS recursion (DNSSEC, DNS64, etc.) you can keep Unbound on port 53 and move dnsmasq to e.g. 5353, then forward Unbound → dnsmasq for the local zones .
+
+---
 ```
 
 Browser → FastAPI → 
