@@ -8,13 +8,14 @@
 
 ## tool kit
 - Golang/CUE
-- Python/Conda
-- Jinja2
+- Python/Conda/Jinja2/FastAPI- 
 - Linux {arch|ubuntu}
 - {duckdb|sqlite3} <--- local * production grade
 - {mondodb|postgresql|timescaledb} <--- local/remote * production grade
 - self-host everything
-- /22 subnet
+- /22 subnet and use fibs to bound symmetry and plan things from there!
+- latex/pandoc/markdown/mermaid/gitea{self-hosted}
+- git
 
 ## llm
 - chatgpt
