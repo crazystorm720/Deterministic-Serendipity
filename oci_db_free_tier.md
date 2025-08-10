@@ -2,6 +2,9 @@
 
 [mqtt_nonsense](https://github.com/crazystorm720/room-occupancy-prediction-mqtt-meraki/tree/main)
 
+[getting_serious](https://github.com/crazystorm720/mandelbrot_set_generation)
+
+ 
 # Mathematical Certainty Platform
 ## Transforming Business Risk into Mathematical Guarantees
 
@@ -2761,6 +2764,8 @@ scrape_configs:
 ```bash
 sudo systemctl enable --now promtail
 ```
+
+###### my 'production' pi backed by real world advanced uses of LLM/ML backed 'intelligence' can even go solar! Philippines offers a great place to relax and enjoy life!
 
 ──────────────────────────────  
 6.  Alert rules (Prometheus)  
