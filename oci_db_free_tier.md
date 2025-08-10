@@ -270,6 +270,126 @@ This division maximizes efficiency by leveraging the Fibonacci sequence’s most
 
 ---
 
+────────────────────────────────────────────────────────────  
+FULL-SCALE EXAMPLE  
+Project: “Mondrian-Fibonacci /22 + Linux-Decades”  
+Host:    F-034.lan.mycorp.net   (sequence 34 = 9th Fibonacci, non-prime)  
+────────────────────────────────────────────────────────────  
+
+1. Network layer (already running)  
+   • IP: 10.42.1.34/22  
+   • Gateway: C-001.infra.mycorp.net (10.42.0.1)  
+   • Colour zone label: red (lan)  
+
+2. Local git clone of linux-decades  
+   $ git clone https://git.mycorp.net/infra/linux-decades.git /etc/linux-decades  
+
+3. Directory tree exactly as it lands on disk  
+   (only the files that actually exist are shown; prime-Fib indices are left as **0-byte placeholders**)  
+
+/etc/linux-decades  
+├── 00_bootstrap  
+│   ├── 00_00_installer_seed.cfg  
+│   ├── 00_01_register_debian_mirror.sh   ← 0-byte (Fib 1, prime)  
+│   ├── 00_02_first_boot_update.sh  
+│   ├── 00_03_apt_https_transport.sh  
+│   ├── 00_05_early_pkgs.lst  
+│   ├── 00_08_early_services.yml  
+│   └── 00_13_install_kernel.sh          ← 0-byte (Fib 13, prime)  
+├── 10_system  
+│   ├── 10_00_hostname_timezone.sh  
+│   ├── 10_01_ntp_chrony.conf            ← 0-byte  
+│   ├── 10_02_dns_resolved.conf  
+│   ├── 10_03_sysctl_hardening.conf  
+│   ├── 10_05_limits_d.conf  
+│   ├── 10_08_journald_retention.conf  
+│   └── 10_13_timezone_override.sh       ← 0-byte  
+├── 20_identity  
+│   ├── 20_00_users_groups.yml  
+│   ├── 20_01_sudoers.d                  ← dir with 0-byte file 20_01_root  
+│   ├── 20_02_sshd_config_fragment.conf  
+│   ├── 20_03_authorized_keys  
+│   ├── 20_05_fail2ban_whitelist.conf  
+│   └── 20_08_extra_groups.yml  
+├── 30_storage  
+│   ├── 30_00_luks_btrfs_subvols.sh  
+│   ├── 30_01_lvm_thinpool.sh            ← 0-byte  
+│   ├── 30_02_fstab_mounts.conf  
+│   ├── 30_03_zram_generator.conf  
+│   ├── 30_05_btrfs_quota.sh  
+│   └── 30_08_snapper_conf.yml  
+├── 40_packages  
+│   ├── 40_00_sources_list_debian.sh  
+│   ├── 40_01_essential_packages.lst     ← 0-byte  
+│   ├── 40_02_backports_pin.pref  
+│   ├── 40_03_flatpak_remote.sh  
+│   ├── 40_05_docker_repo.sh  
+│   └── 40_08_kubectl_repo.sh  
+├── 50_services  
+│   ├── 50_00_unit_templates  
+│   │   ├── backup@.service  
+│   │   └── podman@.service  
+│   ├── 50_01_enable_units.sh            ← 0-byte  
+│   ├── 50_02_service_overrides.conf  
+│   └── 50_03_container_policy.json  
+├── 60_runtime  
+│   ├── 60_00_nginx_sites  
+│   ├── 60_01_postgres_conf.d            ← 0-byte  
+│   ├── 60_02_logrotate_d  
+│   ├── 60_03_cron_dropins  
+│   └── 60_05_prometheus_node.yml  
+├── 70_performance  
+│   ├── 70_00_cgroup_v2_enable.sh  
+│   ├── 70_01_cpu_governor.sh            ← 0-byte  
+│   ├── 70_02_irqbalance_ban.conf  
+│   ├── 70_03_tuned_profile.conf  
+│   ├── 70_05_zswap.sh  
+│   └── 70_08_rtkit.conf  
+├── 80_security  
+│   ├── 80_00_nftables_rules.nft  
+│   ├── 80_01_fail2ban_jail.local        ← 0-byte  
+│   ├── 80_02_apparmor_profiles  
+│   ├── 80_03_aide_daily.timer  
+│   └── 80_05_ssh_guard.conf  
+├── 90_local  
+│   ├── 90_00_site_overrides.sh  
+│   ├── 90_01_last_minute_fix.sh         ← 0-byte  
+│   └── 90_34_host_specific.yml          ← only for seq 34  
+└── hosts/                               ← per-host overlay  
+    └── F-034.lan.mycorp.net -> ../90_local/90_34_host_specific.yml  
+
+4. Colour tagging in systemd  
+   $ getfattr -n user.zone_colour /etc/linux-decades/60_runtime/60_00_nginx_sites/default.conf  
+   user.zone_colour="red"
+
+   This attribute is read by `50_02_service_overrides.conf` to inject ANSI colour in `systemctl status`.
+
+5. Prime-gap & mirror script (runs every boot)  
+   /etc/linux-decades/90_local/90_34_host_specific.yml  
+   ```
+   ---
+   - name: ensure mirror twin exists
+     shell: |
+       seq=34
+       mirror=$(( (2**8 - 1) ^ seq ))   # 8-bit flip
+       file="/etc/linux-decades/70_performance/70_${mirror}_irqbalance_ban.conf"
+       [[ -e "$file" ]] || install -m 644 /dev/null "$file"
+   ```
+
+   • mirror = 221 (decimal) → 11011101₂  
+   • 221 itself is **not** a Fibonacci prime, so the file remains empty—another silent twin.
+
+6. Verification commands  
+   # List only *populated* files (ignore 0-byte placeholders)  
+   find /etc/linux-decades -type f -size +0  
+
+   # Check colour tag propagation  
+   systemctl --no-pager status nginx.service | grep --colour=always red  
+
+The host boots with every layer—network, filesystem, configuration—obeying the identical set of clock-face, Fibonacci, prime-gap, Mondrian-colour rules.
+
+---
+
 Certainly! Let's break down the process of creating the prompt that would lead to the documented project structure and steps. This will help you understand how to recursively distill the project into a clear and actionable prompt.
 
 ### Recursive Prompt Creation
