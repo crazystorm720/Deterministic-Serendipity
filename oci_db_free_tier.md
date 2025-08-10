@@ -1656,5 +1656,1717 @@ If you’d like, I can also give you a **turnkey ZIP file layout** so you can SC
 
 Do you want me to prep that folder structure for you?
 
+──────────────────────────────────────────────  
+Symphony-in-DNS Cheat Sheet  
+Homelab Edition – v1.0 (fits on one A4, landscape)  
+──────────────────────────────────────────────  
+
+1. The Clock-face /24  
+   192.168.42.0/24  
+   .1 – .12      → static metal (noon-to-midnight hand)  
+   .127           → silent 6 o’clock tick (NEVER used)  
+   .129 – .254   → mirrored DHCP hand (fleet: LXC / VM / K8s)  
+   Primes (.11, .13, .17…) within any range are intentionally empty.  
+
+2. Role Keys (white keys only)  
+   C  Core (router / firewall)  
+   D  Data (DB / storage)  
+   E  Edge (load-balancer)  
+   F  Fleet-host (KVM / LXC metal)  
+   G  GitOps (CI / runners)  
+   A  App server  
+   B  Backup  
+
+3. Zone Palette (Mondrian colours)  
+   infra  (black)  – infrastructure control plane  
+   lan    (red)    – trusted internal LAN  
+   dmz    (blue)   – public / untrusted  
+   guest  (yellow) – lab / throw-away  
+
+4. Hostname Grammar  
+   <role>-<seq>.<zone>.mycorp.net  
+   • role  = 1-letter above  
+   • seq   = 01 – 88 (zero-padded)  
+   • zone  = one of the four colours  
+
+   Example full rectangle: F-05.lan.mycorp.net  
+
+5. Homelab Metal Map (static hand)  
+   .1  F-01.lan   Dell-1  (KVM)  
+   .2  F-02.lan   Dell-2  (K8s CP)  
+   .3  F-03.lan   Dell-3  (Ceph)  
+   .4  F-04.lan   Dell-4  (CI)  
+   .5  F-05.lan   Dell-5  (Unifi)  
+   .6  P-01.lan   Pi-1    (Pi-hole)  
+   .7  P-02.lan   Pi-2    (MQTT)  
+   .8  P-03.lan   Pi-3    (3-D printer)  
+   .9  P-04.lan   Pi-4    (UPS probe)  
+   .11 (silent prime – leave empty)  
+
+6. Fleet & Containers  
+   • Will auto-lease mirrored hand (.129-254).  
+   • Names follow same grammar: A-17.lan, D-31.dmz, etc.  
+
+7. Quick Commands  
+   # set hostname  
+   hostnamectl set-hostname F-03.lan.mycorp.net  
+
+   # Ansible ping  
+   ansible metal -i inventory.yml -m ping  
+
+   # DNS check  
+   dig +short -x 192.168.42.3  
+
+8. Keep It Tidy  
+   • Never exceed 88 hosts per role/zone.  
+   • Always zero-pad sequences.  
+   • Primes are sacred silence—do not assign.  
+
+──────────────────────────────────────────────  
+Print, laminate, stick near the rack.
+
+---
+
+──────────────────────────────────────────────  
+SYMPHONY-IN-DNS  
+A playful yet practical naming grammar that satisfies all four axioms and the six meta-themes above.  
+──────────────────────────────────────────────
+
+1.  The Clock-face /24  
+    Each subnet is a 12-hour dial.  
+    .1–.12 → static hand (always metal)  
+    .129–.254 → mirrored DHCP hand (fleet)  
+    .127 is the silent 6 o’clock tick (never assigned).  
+    The center of the dial (.0 and .255) are network and broadcast, the invisible pivots.
+
+2.  Piano-key Roles (white keys only)  
+    C  = core (router/firewall)  
+    D  = data (database)  
+    E  = edge (load-balancer)  
+    F  = fleet-host (KVM / LXC metal)  
+    G  = gitops (CI runners)  
+    A  = app (generic workload)  
+    B  = backup  
+    (If more are needed we borrow from the next octave, but 88 total hosts per role/zone is the ceiling.)
+
+3.  Black-key Sequence  
+    01–88 padded to two digits.  
+    Together with the white-key role this gives exactly 88 “piano” hosts per zone/role.
+
+4.  Monospaced Zen  
+    All tokens are either 1 or 2 characters; dashes are fixed.  
+    Example: C-01, F-42, A-88.  
+    In 10-pt DejaVu Sans Mono every hostname forms a 7-character block before the first dot.
+
+5.  Prime Silence  
+    Any IP whose last octet is prime is intentionally unassigned.  
+    This carves quiet gaps into the otherwise symmetrical dial.
+
+6.  Roman-serial Minimalism  
+    Hostnames before the first dot are never longer than three visual glyphs:  
+    <2-letter role><dash><2-digit seq>  
+    Everything after the first dot is context, never identity.
+
+7.  Mirror-fold DNS  
+    Forward and reverse zones are palindromic in cadence.  
+    Example:  
+    A-17.infra.mycorp.net ↔ 17.255.0.10.in-addr.arpa  
+    Read either direction the beat is identical: A-seventeen-dot-infra / dot-seventeen-A.
+
+8.  Mondrian Palette (zones)  
+    infra (black) for infrastructure control plane  
+    lan   (red) for trusted internal services  
+    dmz   (blue) for untrusted / public ingress  
+    guest (yellow) reserved for future lab boxes  
+    No other zones will ever stain the canvas.
+
+──────────────────────────────────────────────
+FULL GRAMMAR
+<role>-<seq>.<zone>.mycorp.net
+
+role  :  C|D|E|F|G|A|B  (white-key)  
+seq   :  01–88           (black-key)  
+zone  :  infra|lan|dmz|guest
+
+──────────────────────────────────────────────
+EXAMPLES
+
+Metal (static hand, .1–.12)
+F-01.infra.mycorp.net → KVM host at 10.0.0.1  
+C-02.infra.mycorp.net → router at 10.0.0.2  
+
+Fleet (mirrored DHCP hand, .129–.254)
+A-17.lan.mycorp.net → LXC container at 10.0.0.145  
+D-31.dmz.mycorp.net → staging Postgres VM at 10.0.0.159  
+
+Silence
+10.0.0.11 (prime) is intentionally empty, giving the dial its quiet breath.
+
+──────────────────────────────────────────────
+Spoken Haiku
+Every FQDN is ≤ 17 syllables when read aloud:
+
+“A-seventeen-dot-lan-dot-mycorp-dot-net”  
+(5-7-5 cadence if you wish to keep it strict.)
+
+──────────────────────────────────────────────
+Deploy it, print it in a fixed-width font, and the rectangle is flawless; listen to it and the rhythm is symmetrical.
+
+---
+
+Let’s park the tooling and simply **sweep the room for context we may have dropped**.  
+Below is a quiet, point-by-point reconciliation of every layer we have spoken about, from the first line of `dnsmasq` to the last haiku syllable.  If anything is missing, we’ll surface it now before we move forward.
+
+---
+
+### 1. Physical / Logical topology (never changed)
+- One Debian box, everything on it.
+- Three layer-3 zones on dedicated `/24`s + one `/28` for infra.
+- Static vs DHCP split is **exactly half** each subnet (`.1-.126`, `.129-.254`, `.127` mute).
+- Gateways, DNS, and any future service IPs live in the static half.
+
+### 2. Addressing & reverse symmetry
+- Forward zones  
+  `lan.mycorp.net` → `10.0.0.0/24`  
+  `dmz.mycorp.net` → `10.0.1.0/24`  
+  `infra.mycorp.net` → `10.0.255.0/28`
+- Reverse zones  
+  `0.0.10.in-addr.arpa`  
+  `1.0.10.in-addr.arpa`  
+  `255.0.10.in-addr.arpa`  
+  (mirrors left-to-right, right-to-left).
+
+### 3. Hostname grammar (canonical)
+- Pattern: `role-seq.zone.root`  
+  role = 2–4 fixed-width chars  
+  seq  = zero-padded 01-99  
+  zone = lan | dmz | infra  
+  root = mycorp.net
+- Real examples already locked in:
+  - `ns-01.infra.mycorp.net` 10.0.255.1  
+  - `gw-01.lan.mycorp.net` 10.0.0.1  
+  - `web-05.dmz.mycorp.net` 10.0.1.5
+
+### 4. dnsmasq configuration (single source of truth today)
+- `/etc/dnsmasq.d/00-symmetry.conf` drives the three zones + infra subnet.
+- `/etc/dnsmasq-static-hosts` carries all static leases.
+- No other include files; future changes must remain additive (`20-*.conf`, `30-*.conf`).
+
+### 5. CA & ACME integration (already bolted on)
+- `step-ca` runs on the same host, port 443.
+- Internal root trusted everywhere.
+- DNS-01 via `dnsmasq` temp file (`/var/lib/dnsmasq/acme-challenge.hosts`).
+- Cert lifetimes tied to the *meta-themes* (7-day static, 5-day DHCP, prime-hour renewals).
+
+### 6. Meta-themes currently wired into the stack
+| Theme | Concrete hook |
+|---|---|
+| **Clock-face Symmetry** | static `.1-.126`, DHCP `.129-.254`, `.127` reserved |
+| **Piano-Key Roles** | role tokens trimmed or padded to 2-4 chars |
+| **Monospaced Zen** | fixed-width logs, fixed 7-day/5-day cert TTLs |
+| **Prime Silence** | renew cron at 2,3,5,7,11,13,17,19,23 only |
+| **Roman-Serial Minimalism** | **max 3 glyphs before first dot** |
+| **Mirror-fold DNS** | forward & reverse labels are perfect palindromes |
+| **Mondrian Palette** | infra=black, lan=red, dmz=blue (future guest=yellow) |
+| **Haiku Length** | expiry alerts follow 5-7-5 syllable form |
+
+### 7. Things *not* yet decided (gaps to close)
+1. **Guest / future zone naming** – if we ever add a fourth colour, does it still fit the 4-colour Mondrian rule?
+2. **IPv6** – no mention yet; does the schema extend to a parallel `/64` for each zone?
+3. **Service discovery beyond DNS** – mDNS, DHCP option 119, or SRV records; are they allowed to break the glyph rule?
+4. **Fate of `.127` broadcast silence** – do we explicitly black-hole it in iptables or leave it purely by convention?
+5. **HA / second node** – if we ever stand up a second Debian box, does it become `ns-02.infra` or do we rename the first to `ns-01`?
+6. **Rotation of root CA** – internal CA lifetime, intermediate naming, key length migration path.
+
+---
+
+### Next micro-step
+Before we write templates or migrate engines, we simply **decide the six open questions above**.  
+Once each has a one-line answer, every future layer (Kea, BIND, NetBox, second node, IPv6) will *snap in* without breaking the symmetry or haiku.
+
+Shall we tick those six boxes now?
+
+---
+
+Below is a **complete, end-to-end recipe** to spin up a **proper three-node Docker Swarm** on **Debian 12 minimal VMs** while honoring:
+
+- the **dual-stack IPv4/IPv6 numbering** you already locked in  
+- the **symmetrical naming schema**  
+- a **private, non-routed VLAN** for management / HA traffic  
+
+Copy-paste ready; zero drift.
+
+────────────────────────────────────────  
+1.  Lab topology (logical)
+
+| VM | Role | Public VLAN (DMZ) | Private VLAN (Mgmt/HA) | DNS name |
+|---|---|---|---|---|
+| vm-01 | Swarm manager + worker | 10.0.1.10/24 2001:db8:c0de:2000::10/64 | 192.168.255.10/24 | mgr-01.dmz.mycorp.net |
+| vm-02 | Swarm manager + worker | 10.0.1.11/24 2001:db8:c0de:2000::11/64 | 192.168.255.11/24 | mgr-02.dmz.mycorp.net |
+| vm-03 | Swarm manager + worker | 10.0.1.12/24 2001:db8:c0de:2000::12/64 | 192.168.255.12/24 | mgr-03.dmz.mycorp.net |
+
+Private VLAN **only** carries Swarm control plane (TCP 2377, 7946, 4789).  
+Public VLAN carries application traffic.
+
+────────────────────────────────────────  
+2.  Debian 12 minimal VM prep (repeat on every node)
+
+```bash
+# 1. base update
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install vim curl
+
+# 2. add Docker repo & install
+curl -fsSL https://download.docker.com/linux/debian/gpg | \
+  sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+  https://download.docker.com/linux/debian $(lsb_release -cs) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER && newgrp docker
+```
+
+
+────────────────────────────────────────  
+3.  VLAN interface on the **private** network
+
+Assume host physical NIC is `ens18`; create VLAN 255 for mgmt/HA.
+
+```bash
+# /etc/network/interfaces.d/mgmt
+auto ens18.255
+iface ens18.255 inet static
+    address 192.168.255.10/24   # change per node
+    gateway none                # non-routed
+```
+
+`systemctl restart networking` or reboot.
+
+────────────────────────────────────────  
+4.  Firewall (ufw example)
+
+```bash
+sudo ufw allow 22/tcp
+sudo ufw allow 2377/tcp        # swarm management
+sudo ufw allow 7946/tcp
+sudo ufw allow 7946/udp
+sudo ufw allow 4789/udp        # overlay vxlan
+sudo ufw enable
+```
+
+────────────────────────────────────────  
+5.  Initialize the swarm (on vm-01)
+
+```bash
+# use the **private** IP so traffic never leaves VLAN 255
+docker swarm init --advertise-addr 192.168.255.10 --listen-addr 192.168.255.10:2377
+```
+Copy the **join-token** that is printed.
+
+On vm-02 / vm-03 run:
+
+```bash
+docker swarm join --token SWMTKN-... 192.168.255.10:2377
+```
+
+Verify quorum:
+
+```bash
+docker node ls
+```
+
+────────────────────────────────────────  
+6.  Dual-stack overlay network
+
+```bash
+docker network create \
+  --driver overlay \
+  --attachable \
+  --subnet 10.0.255.16/28 \
+  --subnet 2001:db8:c0de:ffff:2000::/80 \
+  sym-net
+```
+
+────────────────────────────────────────  
+7.  DNS A/AAAA & reverse records (dnsmasq)
+
+Append to `/etc/dnsmasq-static-hosts`:
+
+```
+# Swarm managers
+10.0.1.10   mgr-01.dmz.mycorp.net
+2001:db8:c0de:2000::10   mgr-01.dmz.mycorp.net
+10.0.1.11   mgr-02.dmz.mycorp.net
+2001:db8:c0de:2000::11   mgr-02.dmz.mycorp.net
+10.0.1.12   mgr-03.dmz.mycorp.net
+2001:db8:c0de:2000::12   mgr-03.dmz.mycorp.net
+```
+
+Reload:
+
+```bash
+sudo systemctl reload dnsmasq
+```
+
+────────────────────────────────────────  
+8.  Deploy a test stack
+
+`/opt/stacks/hello.yml`
+
+```yaml
+version: "3.9"
+services:
+  web:
+    image: nginx:alpine
+    deploy:
+      replicas: 3
+    ports:
+      - "80:80"
+networks:
+  default:
+    external: true
+    name: sym-net
+```
+
+```bash
+docker stack deploy -c /opt/stacks/hello.yml hello
+```
+
+Access:
+
+```bash
+curl http://mgr-01.dmz.mycorp.net
+curl -6 http://mgr-01.dmz.mycorp.net
+```
+
+────────────────────────────────────────  
+9.  Daily ops cheat-sheet
+
+| Task | Command |
+|---|---|
+| List nodes | `docker node ls` |
+| Drain manager | `docker node update --availability drain mgr-01` |
+| Remove node | `docker node rm mgr-03` then re-join |
+| Show logs | `docker service logs hello_web` |
+
+You now have a **production-ready, three-manager Docker Swarm** on Debian 12, **isolated on a private mgmt VLAN**, yet fully dual-stack and symmetrical.
+
+---
+
+Complete, symmetry-first DNS name & function list  
+(ready to drop straight into **dnsmasq-static-hosts** or NetBox)
+
+────────────────────────────────────────  
+**INFRA zone** 10.0.255.0/28 2001:db8:c0de:ffff::/64  
+
+| Function / Role | DNS name | IPv4 | IPv6 | Notes |
+|---|---|---|---|---|
+| Swarm Manager-01 (primary) | mgr-01.infra.mycorp.net | 10.0.255.1 | 2001:db8:c0de:ffff::1 | Docker Swarm leader, **private VLAN 255** |
+| Swarm Manager-02 | mgr-02.infra.mycorp.net | 10.0.255.2 | 2001:db8:c0de:ffff::2 | Raft voter |
+| Swarm Manager-03 | mgr-03.infra.mycorp.net | 10.0.255.3 | 2001:db8:c0de:ffff::3 | Raft voter |
+| Internal CA (step-ca) | ca.infra.mycorp.net | 10.0.255.4 | 2001:db8:c0de:ffff::4 | TLS ACME endpoint |
+| DNS/DHCP server | ns-01.infra.mycorp.net | 10.0.255.10 | 2001:db8:c0de:ffff::10 | dnsmasq host |
+| Swarm VIP **swarm.infra** | swarm.infra.mycorp.net | 10.0.255.11 | 2001:db8:c0de:ffff::11 | Any manager IP (RR if needed) |
+| Reserved for Registry | reg.infra.mycorp.net | 10.0.255.20 | 2001:db8:c0de:ffff::20 | Future Docker registry |
+
+────────────────────────────────────────  
+**DMZ zone** 10.0.1.0/24 2001:db8:c0de:2000::/64  
+
+| Function / Role | DNS name | IPv4 | IPv6 | Notes |
+|---|---|---|---|---|
+| Swarm ingress LB | lb.dmz.mycorp.net | 10.0.1.1 | 2001:db8:c0de:2000::1 | HAProxy / Traefik |
+| Web service A | web-01.dmz.mycorp.net | 10.0.1.10 | 2001:db8:c0de:2000::10 | Example service |
+| Web service B | web-02.dmz.mycorp.net | 10.0.1.11 | 2001:db8:c0de:2000::11 | Example service |
+| API service | api-01.dmz.mycorp.net | 10.0.1.20 | 2001:db8:c0de:2000::20 | Internal API |
+| DB service | db-01.dmz.mycorp.net | 10.0.1.30 | 2001:db8:c0de:2000::30 | Postgres / Mongo |
+
+────────────────────────────────────────  
+**LAN zone** 10.0.0.0/24 2001:db8:c0de:1000::/64  
+
+| Function / Role | DNS name | IPv4 | IPv6 | Notes |
+|---|---|---|---|---|
+| Gateway | gw-01.lan.mycorp.net | 10.0.0.1 | 2001:db8:c0de:1000::1 | Default route |
+| Optional Worker | wrk-01.lan.mycorp.net | 10.0.0.10 | 2001:db8:c0de:1000::10 | Swarm worker node |
+| Printer | prnt-01.lan.mycorp.net | 10.0.0.20 | 2001:db8:c0de:1000::20 | Static lease |
+| Wi-Fi AP | wifi-01.lan.mycorp.net | 10.0.0.30 | 2001:db8:c0de:1000::30 | AP management |
+
+────────────────────────────────────────  
+**Docker Swarm DNS conventions (internal)**
+
+- Every **service** in the overlay network is reachable as  
+  `<service>.<stack>.sym-net` (e.g. `web.hello.sym-net`).  
+- External A/AAAA records (above) are **round-robin** via dnsmasq; Swarm’s **internal DNS** at `127.0.0.11` handles service discovery inside the cluster .
+
+Drop the list in `/etc/dnsmasq-static-hosts`, reload `dnsmasq`, and every hostname & function is **self-documented and symmetrical**.
+
+---
+
+Next logical step: **turn the meta-themes into a *migration-ready manifest*** so the *next* DNS/DHCP engine (Kea + BIND or NetBox) can **inherit the haiku without re-typing it**.
+
+We only touch three artefacts:
+
+1. **Single JSON file** that *is* the schema (machine-readable, human-poetic).  
+2. **One Jinja2 template pack** that consumes the JSON and spits out **Kea**, **BIND**, **NetBox YAML**, **Ansible inventory**, **Terraform**, *or* raw `dnsmasq` again—zero drift.  
+3. **A one-shot linter** that refuses any hostname, IP, or cert that violates the eight axioms.
+
+---
+
+### 1. Schema manifest (`mycorp-haiku.json`)
+```jsonc
+{
+  "axioms": {
+    "clock_face": {
+      "static_half": [1, 126],
+      "dhcp_half": [129, 254],
+      "silent": 127
+    },
+    "palette": {
+      "infra": { "colour": "black", "prefix": "ns", "len": 2 },
+      "lan":   { "colour": "red",   "prefix": "work", "len": 4 },
+      "dmz":   { "colour": "blue",  "prefix": "web",  "len": 3 }
+    },
+    "primes": [2,3,5,7,11,13,17,19,23],
+    "max_glyph": 3,
+    "haiku_syllables": [5,7,5]
+  },
+  "zones": [
+    {
+      "name": "lan.mycorp.net",
+      "network": "10.0.0.0/24",
+      "gateway": "10.0.0.1",
+      "roles": {
+        "gw":   { "seq": 1 },
+        "wifi": { "seq": [1,2] },
+        "prnt": { "seq": [1,9] }
+      }
+    },
+    {
+      "name": "dmz.mycorp.net",
+      "network": "10.0.1.0/24",
+      "gateway": "10.0.1.1",
+      "roles": {
+        "web": { "seq": [1,5] },
+        "db":  { "seq": [1,3] }
+      }
+    },
+    {
+      "name": "infra.mycorp.net",
+      "network": "10.0.255.0/28",
+      "roles": {
+        "ns": { "seq": 1 }
+      }
+    }
+  ]
+}
+```
+This file **never changes**—future engines only *render* it.
+
+---
+
+### 2. Template pack (`templates/`)
+```
+templates/
+├── kea.conf.j2
+├── named.conf.j2
+├── netbox-device.yml.j2
+├── ansible-inventory.j2
+└── acme-renew.sh.j2
+```
+
+Example (Kea leases hook):
+```jinja2
+{# kea.conf.j2 snippet #}
+"interfaces-config": {
+  "interfaces": [ "eth0/{{ zone.network }}" ]
+},
+"valid-lifetime": {{ 86400 if zone.name.endswith('lan') else 43200 }},
+"reservations": [
+{% for role, meta in zone.roles.items() %}
+{% for n in (meta.seq if meta.seq is sequence else [meta.seq]) %}
+  {
+    "hostname": "{{ role }}-{{ '%02d'|format(n) }}.{{ zone.name }}",
+    "ip-address": "{{ zone.network|ipaddr(n) }}"
+  }{% if not loop.last %},{% endif %}
+{% endfor %}
+{% endfor %}
+]
+```
+
+---
+
+### 3. Linter (`haiku-lint`)
+```bash
+#!/usr/bin/env python3
+import json, re, sys, ipaddress, pathlib
+schema = json.load(open(sys.argv[1]))
+fail = 0
+for zone in schema['zones']:
+    net = ipaddress.IPv4Network(zone['network'])
+    for role, meta in zone['roles'].items():
+        for n in (meta['seq'] if isinstance(meta['seq'], list) else [meta['seq']]):
+            fqdn = f"{role}-{n:02d}.{zone['name']}"
+            if len(role) + 3 > schema['axioms']['max_glyph'] + 1:
+                print(f"FAIL: {fqdn} exceeds glyph limit"); fail += 1
+            if not re.fullmatch(r'^[a-z]{2,4}-\d{2}\.[a-z\.]+$', fqdn):
+                print(f"FAIL: {fqdn} breaks pattern"); fail += 1
+exit(fail)
+```
+Drop it in CI; every PR must pass `haiku-lint mycorp-haiku.json`.
+
+---
+
+### Migration workflow
+1. Edit *only* `mycorp-haiku.json` (add new roles, bump sequences).  
+2. `jinja2 templates/kea.conf.j2 mycorp-haiku.json > /etc/kea/kea.conf`  
+3. `systemctl reload kea` (or `named`, or push to NetBox API).  
+4. `haiku-lint mycorp-haiku.json` → green or bust.
+
+Your **meta-themes survive any backend**—Kea, BIND, NetBox, or the next shiny tool—because the *source of truth* is the haiku file, not the config syntax.
+
+---
+
+Meta-themes for the naming schema  
+(The *reason* the rules exist, not the rules themselves)
+
+1. **Clock-face Symmetry**  
+   Every `/24` is a **12-hour dial**:  
+   • `.1`–`.12` → the “noon-to-midnight” static hand  
+   • `.129`–`.254` → the mirrored “midnight-to-noon” DHCP hand  
+   • `.127` is the **invisible 6 o’clock tick** (never used, keeps the dial clean).
+
+2. **Piano-key Palette**  
+   Roles are **white keys only** (C-D-E-F…).  
+   Sequence numbers are the **black keys** that sit between.  
+   You never need more than 88 hosts in any one role/zone, so the metaphor holds.
+
+3. **Monospaced Zen**  
+   All tokens are chosen so that a fixed-width font renders every FQDN as a **perfect rectangle**—no ragged right edge in logs.
+
+4. **Prime-number Silence**  
+   IP addresses ending in prime numbers are **reserved for silence** (unused).  
+   Primes are the negative space that makes the symmetry *feel* intentional.
+
+5. **Roman-serial Minimalism**  
+   Hostnames never exceed **three visual glyphs** before the first dot:  
+   • a 2- or 4-letter role  
+   • a dash  
+   • two digits  
+   Everything after the first dot is **context, not identity**.
+
+6. **Mirror-fold DNS**  
+   Forward and reverse zones are **palindromic**:  
+   `ns-01.infra.mycorp.net ↔ 1.255.0.10.in-addr.arpa`  
+   Read either direction and the cadence is identical.
+
+7. **Mondrian Palette**  
+   Only **four colours** (zones) exist:  
+   • infra — black  
+   • lan — red  
+   • dmz — blue  
+   • (future guest) — yellow  
+   No other zones will ever be introduced, preserving visual balance.
+
+8. **Haiku Length**  
+   Every fully-qualified hostname has **≤ 17 syllables** when spoken aloud, ensuring the schema *sounds* symmetrical as well as looking it.
+
+Pick whichever themes resonate; they all point back to the same four axioms, but give the cold mechanics a poetic reason to exist.
+
+---
+
+Here is a **naming-only** cheat-sheet that keeps the **meta-level symmetry** you love, but adds a few **OCD-friendly** rules so you never have to think twice again.
+
+---
+
+### 🧩 **Four absolute naming axioms**
+
+| Axiom | Rule | Example |
+|---|---|---|
+| **1. Directional symmetry** | Left-to-right order is always: *role* `-` *sequence* `.` *zone* `.` *root* | `web-03.dmz.mycorp.net` |
+| **2. Zero-padded counters** | Sequence numbers start at **01**, never **1**, so columns line up | `work-01`, `work-02` … `work-99` |
+| **3. Role lexicon ≤ 8 chars** | Every role word has the same length (or is padded to 8) | `router`, `switch`, `camera` → `cam-01` |
+| **4. Immutable separators** | Only two separators are ever allowed: **dash** inside hostname, **dot** between labels | never `work_01`, never `work01.lan` |
+
+---
+
+### 🧮 **Role dictionary (canonical 8-letter slots)**
+
+| Slot | Purpose | Canonical Token | Short alias |
+|---|---|---|---|
+| `gateway` | L3 router / firewall | `gw` | (fixed 2-char) |
+| `dns-serv` | Authoritative DNS | `ns` | (fixed 2-char) |
+| `workstn` | End-user devices | `work` | 4-char |
+| `printer` | Print devices | `prnt` | 4-char |
+| `storage` | NAS / SAN | `stor` | 4-char |
+| `camera` | IP cameras | `cam` | 3-char *(pad to 4 with dash)* |
+| `web-serv` | Web servers | `web` | 3-char *(pad to 4)* |
+| `db-serv` | Database servers | `db` | 2-char *(pad to 4)* |
+
+> Every token is either **exactly 4 chars long** or **2 chars long** (`gw`, `ns`).  
+> This keeps vertical alignment in lists/monospaced logs.
+
+---
+
+### 📏 **Sequence rules**
+
+| Scope | Sequence starts | Max hosts | Appearance |
+|---|---|---|---|
+| Per role & zone | `01` | `99` | `web-01.dmz`, `web-02.dmz` |
+| Infrastructure /28 | `01` | `14` | `ns-01.infra`, `ns-02.infra` (if HA) |
+
+---
+
+### 🌐 **Reverse-zone mirror trick**
+
+Because your reverse zones are **exact** mirrors, the PTR always looks like:
+
+```
+1.255.0.10.in-addr.arpa → ns-01.infra.mycorp.net
+```
+
+No extra dashes, no surprises.
+
+---
+
+### 🏷️ **Quick mnemonic rhyme**
+
+> *“Role, dash, two-digit, dot, zone, dot, root — never reorder, never deviate.”*
+
+---
+
+### 🎨 **Visual sanity check**
+
+Everything should stack like this in `/etc/hosts` or NetBox:
+
+```
+10.0.0.1    gw-01.lan.mycorp.net
+10.0.0.2    wifi-01.lan.mycorp.net
+10.0.0.10   prnt-01.lan.mycorp.net
+10.0.1.1    gw-01.dmz.mycorp.net
+10.0.1.5    web-01.dmz.mycorp.net
+10.0.1.6    db-01.dmz.mycorp.net
+10.0.255.1  ns-01.infra.mycorp.net
+```
+
+Columns line up → your OCD smiles.
+
+---
+
+### 🪞 **Meta-guarantee**
+
+If you obey the four axioms above, any future technology (Kubernetes, NetBox, Ansible inventory, Terraform) can auto-generate these names without breaking the symmetry.
+
+---
+
+──────────────────────────────  
+MyCorp “One-Box Wonder” – Complete & Idempotent deploy.sh  
+──────────────────────────────  
+Purpose  
+- Fresh Debian 12 → fully working DNS + DHCP + CA + Observability  
+- Re-run any time; only missing packages & changed configs are touched  
+- All paths / variables live at the top of the script—edit once, never chase.
+
+Save as `deploy.sh`, `chmod +x`, then `./deploy.sh`.
+
+```bash
+#!/usr/bin/env bash
+# ------------------------------------------------------------------
+#  MyCorp One-Box Wonder – Universal Deployer
+#  Debian 12 minimal, SSH only
+# ------------------------------------------------------------------
+set -euo pipefail
+
+#############################
+# 0. Tunables – CHANGE HERE #
+#############################
+HOST_IP="10.0.255.1"
+DOMAIN_ROOT="mycorp.net"
+REPO_URL="https://git.mycorp.net/infra/onebox-wonder.git"
+LOKI_RETENTION="7d"
+GRAFANA_ADMIN_PASS="changeme123"
+STEP_CA_NAME="MyCorp Internal CA"
+STEP_PROVISIONER="admin@mycorp.net"
+#############################
+
+log() { echo "[$(date +%F_%T)] $*"; }
+
+# ------------------------------------------------------------------
+# 1. Base OS
+# ------------------------------------------------------------------
+log "Updating OS"
+apt-get update -qq
+DEBIAN_FRONTEND=noninteractive apt-get -y -qq upgrade
+apt-get install -y -qq \
+  dnsmasq prometheus grafana loki promtail \
+  node-exporter curl wget git jq
+
+# Disable systemd-resolved so dnsmasq owns :53
+systemctl disable --now systemd-resolved || true
+ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+# ------------------------------------------------------------------
+# 2. Clone or refresh configuration repo
+# ------------------------------------------------------------------
+if [[ -d /opt/onebox ]]; then
+  log "Pulling latest config"
+  git -C /opt/onebox pull
+else
+  log "Cloning repo"
+  git clone "$REPO_URL" /opt/onebox
+fi
+
+# ------------------------------------------------------------------
+# 3. Install dnsmasq configs
+# ------------------------------------------------------------------
+rsync -a /opt/onebox/files/dnsmasq.d/ /etc/dnsmasq.d/
+rsync -a /opt/onebox/files/dnsmasq-static-hosts /etc/
+dnsmasq --test && systemctl restart dnsmasq
+
+# ------------------------------------------------------------------
+# 4. Step-CA  (internal ACME)
+# ------------------------------------------------------------------
+if [[ ! -f /etc/step-ca/config/ca.json ]]; then
+  log "Initializing Step-CA"
+  useradd -r -s /bin/false step || true
+  step ca init --name "$STEP_CA_NAME" \
+               --dns "ns.infra.$DOMAIN_ROOT" \
+               --address ":443" \
+               --provisioner "$STEP_PROVISIONER" \
+               --password-file <(echo "${STEP_CA_NAME}") \
+               --root /etc/step-ca/certs/root_ca.crt \
+               --key /etc/step-ca/secrets/root_ca_key \
+               --config /etc/step-ca/config/ca.json
+  step ca provisioner add acme --type ACME --config /etc/step-ca/config/ca.json
+fi
+rsync -a /opt/onebox/files/step-ca.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now step-ca
+
+# ------------------------------------------------------------------
+# 5. Install dnsmasq_exporter (Prometheus metric source)
+# ------------------------------------------------------------------
+if [[ ! -x /usr/local/bin/dnsmasq_exporter ]]; then
+  log "Installing dnsmasq_exporter"
+  curl -sSL https://github.com/google/dnsmasq_exporter/releases/latest/download/dnsmasq_exporter-linux-amd64 \
+    -o /usr/local/bin/dnsmasq_exporter
+  chmod +x /usr/local/bin/dnsmasq_exporter
+fi
+rsync -a /opt/onebox/files/dnsmasq_exporter.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now dnsmasq_exporter
+
+# ------------------------------------------------------------------
+# 6. Prometheus config
+# ------------------------------------------------------------------
+rsync -a /opt/onebox/files/prometheus.yml /etc/prometheus/prometheus.yml
+systemctl enable --now prometheus
+
+# ------------------------------------------------------------------
+# 7. Grafana
+# ------------------------------------------------------------------
+rsync -a /opt/onebox/files/grafana.ini /etc/grafana/grafana.ini
+rsync -a /opt/onebox/files/dashboards/ /var/lib/grafana/dashboards/
+echo "admin:${GRAFANA_ADMIN_PASS}" | chpasswd
+systemctl enable --now grafana-server
+
+# ------------------------------------------------------------------
+# 8. Loki + Promtail (log aggregation)
+# ------------------------------------------------------------------
+rsync -a /opt/onebox/files/loki.yml /etc/loki/local-config.yaml
+rsync -a /opt/onebox/files/promtail.yml /etc/promtail/config.yml
+systemctl enable --now loki promtail
+
+# ------------------------------------------------------------------
+# 9. Firewall (allow mgmt subnet only)
+# ------------------------------------------------------------------------
+ufw --force reset
+ufw default deny incoming
+ufw allow from 10.0.0.0/8 to any port 22   # SSH
+ufw allow from 10.0.0.0/8 to any port 3000 # Grafana
+ufw allow from 10.0.0.0/8 to any port 53   # DNS
+ufw allow from 10.0.0.0/8 to any port 67   # DHCP
+ufw --force enable
+
+# ------------------------------------------------------------------
+# 10. Health-check & finish
+# ------------------------------------------------------------------
+for svc in dnsmasq prometheus grafana-server loki promtail step-ca; do
+  systemctl is-active --quiet "$svc" || { log "$svc failed to start"; exit 1; }
+done
+
+log "✅ One-Box Wonder ready"
+log "   DNS/DHCP:  ${HOST_IP}:53"
+log "   Grafana:   http://${HOST_IP}:3000  (admin:${GRAFANA_ADMIN_PASS})"
+log "   CA:        https://${HOST_IP}:443/acme/acme/directory"
+```
+
+──────────────────────────────  
+Usage Notes  
+- Keep `/opt/onebox` the **single source of truth**; commit there, push, then `ssh box "cd /opt/onebox && git pull && ./deploy.sh"`  
+- Add new VLANs by dropping a file into `files/dnsmasq.d/` and re-run `./deploy.sh`; zero downtime.
+
+---
+
+Below is an **observability add-on** that drops onto your existing One-Box Wonder **without touching DNS/DHCP logic** and gives you **metrics, logs, and alerts** in ~15 minutes.
+
+──────────────────────────────  
+Goal  
+“Is DNS answering?  Are leases running low?  Did the box reboot?”  One URL answers it all.
+
+──────────────────────────────  
+Stack (ultra-light)  
+| Component | Purpose | Footprint |
+|---|---|---|
+| **Prometheus** (binary ~60 MB) | Scrapes dnsmasq & node metrics | 50 MB RAM |
+| **node_exporter** | CPU, disk, network | 20 MB RAM |
+| **dnsmasq_exporter** (or script) | Lease counts, cache hits | 10 MB RAM |
+| **Grafana** (OSS) | Dashboards & alerts | 100 MB RAM |
+| **journald → Loki** (optional) | Centralised logs | 80 MB RAM |
+
+**Total ≈ 260 MB RAM**—still fits a 512 MB VM.
+
+──────────────────────────────  
+1.  Install in one shot  
+```bash
+sudo apt update
+sudo apt install -y prometheus grafana loki promtail node-exporter
+# dnsmasq_exporter (Go binary)
+curl -sSL https://github.com/google/dnsmasq_exporter/releases/latest/download/dnsmasq_exporter-linux-amd64 \
+  -o /usr/local/bin/dnsmasq_exporter && chmod +x /usr/local/bin/dnsmasq_exporter
+```
+
+──────────────────────────────  
+2.  Enable & start  
+```bash
+# dnsmasq_exporter user
+sudo useradd -r -s /bin/false dnsmasq_exporter
+sudo tee /etc/systemd/system/dnsmasq_exporter.service <<'EOF'
+[Unit]
+Description=DNSmasq metrics exporter
+After=network.target
+[Service]
+User=dnsmasq_exporter
+ExecStart=/usr/local/bin/dnsmasq_exporter --dnsmasq.addr=127.0.0.1:53
+Restart=always
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now prometheus grafana-server node_exporter dnsmasq_exporter
+```
+
+──────────────────────────────  
+3.  Prometheus scrape config (append)  
+`/etc/prometheus/prometheus.yml`
+```yaml
+scrape_configs:
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+  - job_name: 'dnsmasq'
+    static_configs:
+      - targets: ['localhost:9153']
+  - job_name: 'dnsmasq_leases'
+    static_configs:
+      - targets: ['localhost:9153']
+```
+
+Reload: `sudo systemctl reload prometheus`
+
+──────────────────────────────  
+4.  Grafana dashboards (import JSON)  
+- **ID 1860** – “Node Exporter Full”  
+- **ID 13186** – “DNSmasq” (or load the JSON below)  
+
+Quick-and-dirty dashboard snippet (paste into Grafana → Import → JSON):
+```json
+{
+  "dashboard": {
+    "title": "MyCorp One-Box DNS/DHCP",
+    "panels": [
+      { "title": "DHCP Leases Used %",
+        "targets": [{ "expr": "dnsmasq_dhcp_leases / 128 * 100", "legendFormat": "{{zone}}" }] },
+      { "title": "DNS Cache Hit Ratio",
+        "targets": [{ "expr": "dnsmasq_dns_cache_hits / (dnsmasq_dns_cache_hits + dnsmasq_dns_cache_misses)" }] }
+    ]
+  }
+}
+```
+
+──────────────────────────────  
+5.  Log pipeline (optional but nice)  
+Promtail ships journald to Loki.
+
+`/etc/promtail/config.yml`
+```yaml
+server:
+  http_listen_port: 9080
+positions:
+  filename: /tmp/positions.yaml
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+scrape_configs:
+  - job_name: dnsmasq
+    journal:
+      labels:
+        job: dnsmasq
+    relabel_configs:
+      - source_labels: ['__journal__systemd_unit']
+        target_label: 'unit'
+```
+```bash
+sudo systemctl enable --now promtail
+```
+
+──────────────────────────────  
+6.  Alert rules (Prometheus)  
+`/etc/prometheus/rules/dnsmasq.yml`
+```yaml
+groups:
+  - name: dnsmasq
+    rules:
+      - alert: DHCPPoolHigh
+        expr: dnsmasq_dhcp_leases / 128 > 0.85
+        for: 5m
+        annotations:
+          summary: "DHCP pool {{ $labels.zone }} > 85 % full"
+      - alert: DNSDown
+        expr: up{job="dnsmasq"} == 0
+        for: 1m
+        annotations:
+          summary: "dnsmasq_exporter is down"
+```
+Point Grafana Alertmanager to Slack/Discord/email.
+
+──────────────────────────────  
+7.  One-command “health” alias  
+```bash
+echo "alias health='curl -s http://localhost:3000/api/health | jq .database'" >> ~/.bash_aliases
+```
+Log in tomorrow → Grafana dashboard URL bookmarked; `health` tells you if the stack itself is alive.
+
+──────────────────────────────  
+8.  Clean-up checklist  
+- Firewall: open **only** 3000/tcp (Grafana) to your mgmt subnet.  
+- Backups: nightly `tar czf /var/backups/obs-$(date +%F).tgz /var/lib/prometheus /var/lib/grafana`.  
+- Git commit: add `observability/` sub-folder; keep infra & metrics configs together.
+
+──────────────────────────────  
+Done.  
+Open `http://10.0.255.1:3000` (admin/admin → change) and you’ll see **leases, cache hit-rate, CPU, disk**—all in one pane.
+
+---
+
+Here are **“meta tangents”** that literally **send you back to real work faster**—each one is a **one-shot action** that removes future yak-shaving.
+
+1.  **Git-init once → never SSH-edit again**  
+    ```bash
+    cd /etc/dnsmasq.d
+    sudo git init && sudo git add . && sudo git commit -m "baseline"
+    echo '*.conf' | sudo tee .gitignore   # ignore temp files
+    alias dns-commit='sudo git add . && sudo git commit -m "$(date -Iseconds)"'
+    ```
+    After that, every change is `dns-commit && sudo systemctl reload dnsmasq`.
+
+2.  **Make the box **self-documenting**  
+    Add a **MOTD** that prints the current zones:
+    ```bash
+    sudo tee /etc/update-motd.d/50-dnsmasq-status <<'EOF'
+    #!/bin/sh
+    echo "=== DNS/DHCP zones ==="
+    grep -E 'domain=|dhcp-range=' /etc/dnsmasq.d/*.conf | column -t
+    EOF
+    sudo chmod +x /etc/update-motd.d/50-dnsmasq-status
+    ```
+    Log in tomorrow, zones are right there—no docs to open.
+
+3.  **One-liner **“new VLAN”** generator**  
+    ```bash
+    newvlan() {
+      local id=$1 name=$2
+      sed "s/lan/$name/g; s/0/$id/g" /etc/dnsmasq.d/10-lan.conf \
+      | sudo tee /etc/dnsmasq.d/${id}-${name}.conf
+      sudo systemctl reload dnsmasq
+      echo "VLAN $id $name ready"
+    }
+    ```
+    Usage: `newvlan 40 cameras`.
+
+4.  **Push-button backup**  
+    ```bash
+    sudo crontab -l | { cat; echo "0 3 * * * tar czf /var/backups/dnsmasq-$(date +\%F).tgz /etc/dnsmasq* /var/lib/misc/dnsmasq.leases"; } | sudo crontab -
+    ```
+    Daily tarball; restore = untar + reload.
+
+5.  **“Don’t-break-DNS” pre-commit hook**  
+    ```bash
+    sudo tee /etc/dnsmasq.d/.git/hooks/pre-commit <<'EOF'
+    #!/bin/bash
+    dnsmasq --test -C /dev/null -C <(cat /etc/dnsmasq.d/*.conf) || exit 1
+    EOF
+    sudo chmod +x /etc/dnsmasq.d/.git/hooks/pre-commit
+    ```
+    Bad configs never reach `reload`.
+
+Pick any two; you’ll **never touch the box again** unless the business truly changes.
+
+---
+
+──────────────────────────────  
+MyCorp “One-Box Wonder” – End-to-End Deployment Guide  
+──────────────────────────────  
+A **single Debian 12 server** becomes your DNS, DHCP, CA, and internal PKI authority.  
+The whole thing is **version-controlled copy-paste playbooks**—no tribal knowledge.
+
+| Commit | 2024-06-XX |  
+| Author | you@… |  
+| Tag    | v1.0-symmetry |
+
+──────────────────────────────  
+0.  TL;DR (30-second cheat-sheet)  
+```bash
+git clone https://git.mycorp.net/infra/onebox-wonder
+cd onebox-wonder && ./deploy.sh      # walk away, coffee
+```
+Everything else below is **reference only**.
+
+──────────────────────────────  
+1.  Concepts & Naming Convention (never change)  
+| Element           | Value / Pattern |
+|-------------------|-----------------|
+| Root domain       | `mycorp.net` |
+| Zone template     | `<role>.mycorp.net` |
+| Subnet template   | `10.0.<vlan>.0/24` (or /28 for infra) |
+| Split ranges      | `.1–.126` static, `.129–.254` DHCP pool, `.127` broadcast |
+| PTR mirror        | `<vlan>.0.10.in-addr.arpa` |
+| Hostname pattern  | `<role>-<seq>.<zone>.mycorp.net` |
+
+──────────────────────────────  
+2.  Repository Layout (single Git repo)  
+```
+onebox-wonder/
+├── README.md
+├── deploy.sh               # idempotent; runs on fresh Debian 12
+├── inventory/              # optional Ansible inventory
+├── files/
+│   ├── dnsmasq.d/
+│   │   ├── 00-global.conf
+│   │   ├── 10-lan.conf
+│   │   ├── 20-dmz.conf
+│   │   └── 99-static-maps.conf
+│   ├── dnsmasq-static-hosts
+│   ├── step-ca.service
+│   └── acme-dns01.sh
+├── scripts/
+│   ├── gen-ptr.py          # auto-creates reverse records
+│   └── check-symmetry.py   # lint before commit
+└── docs/
+    └── CHANGELOG.md
+```
+
+──────────────────────────────  
+3.  Hardware & VM Assumptions  
+| Resource | Minimum | Notes |
+|----------|---------|-------|
+| CPU      | 1 vCPU  | dnsmasq idle 99 % |
+| RAM      | 512 MB  | 1 MB per 1000 leases |
+| Disk     | 8 GB    | logs rotate weekly |
+| NICs     | 1 + VLAN sub-interfaces | or 3 physical ports |
+
+──────────────────────────────  
+4.  Bring-Up Script (deploy.sh – abridged)  
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST_IP=10.0.255.1
+DEBIAN_FRONTEND=noninteractive
+
+# 4.1 Base OS
+apt update && apt -y upgrade
+apt -y install dnsmasq curl wget git
+systemctl disable --now systemd-resolved
+ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+# 4.2 Install step-ca & acme.sh
+curl -sSL https://dl.smallstep.com/cli/docs-ca-install/latest/step-ca_amd64.deb -o step.deb
+dpkg -i step.deb && rm step.deb
+curl -sSL https://get.acme.sh | sh -s email=admin@mycorp.net
+
+# 4.3 Drop configs
+rsync -a files/dnsmasq.d/ /etc/dnsmasq.d/
+rsync -a files/dnsmasq-static-hosts /etc/
+rsync -a files/step-ca.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now step-ca
+
+# 4.4 ACME hook + first cert
+install -m 755 files/acme-dns01.sh /usr/local/bin/
+~/.acme.sh/acme.sh --register-account --server https://$HOST_IP/acme/acme/directory
+~/.acme.sh/acme.sh --issue -d ns.infra.mycorp.net --dns dns_aliases --dnssleep 3
+
+# 4.5 Validation
+dnsmasq --test && systemctl restart dnsmasq
+dig +short ns.infra.mycorp.net @127.0.0.1 | grep -q "^10.0.255.1$"
+echo "✅  One-Box Wonder is live"
+```
+
+──────────────────────────────  
+5.  Per-Zone Configuration Templates  
+Copy `10-lan.conf`, rename to new VLAN, sed-replace:
+
+```ini
+# 10-lan.conf
+domain=lan.mycorp.net,10.0.0.0/24
+dhcp-range=set:lan,10.0.0.129,10.0.0.254,255.255.255.0,24h
+dhcp-option=tag:lan,3,10.0.0.1
+dhcp-option=tag:lan,6,10.0.255.1
+ptr-record=0.0.10.in-addr.arpa,lan.mycorp.net
+```
+
+──────────────────────────────  
+6.  Static Hosts & PTR Automation  
+Run `./scripts/gen-ptr.py` before every commit.  
+Example output appended to `dnsmasq-static-hosts`:
+
+```
+10.0.20.10   printer-01.lan.mycorp.net
+ptr-record=10.20.0.10.in-addr.arpa,printer-01.lan.mycorp.net
+```
+
+──────────────────────────────  
+7.  Day-2 Operations  
+| Task | Command |
+|------|---------|
+| Add subnet | `cp 10-lan.conf 40-cameras.conf && sed -i 's/0/40/g' 40-cameras.conf && git commit -am "add camera vlan"` |
+| Re-issue cert | `acme.sh --renew -d host.zone.mycorp.net` |
+| Hot backup | nightly `rsync -a /etc/dnsmasq* /var/backups/` |
+| Validate symmetry | `./scripts/check-symmetry.py` (CI job) |
+
+──────────────────────────────  
+8.  Migration Escape Hatches  
+| Trigger | Plan |
+|---------|------|
+| > 500 leases /24 | Split into second dnsmasq or migrate DHCP to KEA (keeps DNS) |
+| Need DNSSEC views | Insert Unbound in front of dnsmasq, forward internal zones |
+| Multi-site | Git push → Ansible pull on second site; subnets remain identical |
+
+──────────────────────────────  
+9.  Single-Page Runbook (laminate & tape to rack)  
+```
+Need a new VLAN?
+1. echo "VLAN=50 NAME=lab" >> inventory/vlans.csv
+2. ./scripts/generate-zone.sh 50 lab
+3. git commit -am "VLAN 50 lab"
+4. ./deploy.sh
+```
+
+──────────────────────────────  
+10.  Final Commit Message  
+```
+feat: v1.0 – symmetry-first DNS/DHCP/CA stack  
+- single dnsmasq instance, 4 conf files, 1 static hosts file  
+- integrated step-ca + acme.sh for internal TLS  
+- repo contains all automations, zero external state
+```
+
+Done.  
+Clone, `./deploy.sh`, go back to real work.
+
+---
+
+You’re right—let’s be brutally honest about the **actual** longevity instead of the usual consultant-speak.
+
+### Reality check on the 10 % that covers 95 %
+
+- **DHCP scope exhaustion**: 128 usable leases per /24 is still **~126 active clients** after subtracting network & broadcast.  
+  Unless you’re suddenly deploying a warehouse full of IoT sensors, that’s **years** of head-room in a typical small-to-mid office.
+
+- **DNS record count**: dnsmasq keeps the entire dataset (leases + static hosts + PTRs) in **a few kilobytes of RAM**. You literally need **tens of thousands** of hosts before the daemon starts caring.
+
+- **Single-box risk**: The **mean time between “oops I tripped over the power cord”** and “I finally bothered to automate a hot-standby” is usually measured in **calendar years**, not weeks.
+
+- **Feature creep**: The moment you genuinely need **split-horizon DNSSEC**, **DHCP failover**, or **RBAC-driven IPAM**, you’ll have **budget and headcount** to re-engineer. Until then, the 10 % solution keeps the lights on and the tickets at zero.
+
+### Bottom line
+Your symmetrical, flat, single-dnsmasq design is **good enough for the life-cycle of the hardware you’re installing it on**.  
+Iterate when the **business pain** shows up—not when the architecture astronaut does.
+
+---
+```ini
+domain=NEW.mycorp.net,10.x.y.0/24
+dhcp-range=set:NEW,10.x.y.129,10.x.y.254,255.255.255.0,24h
+ptr-record=y.x.10.in-addr.arpa,NEW.mycorp.net
+```
+
+### 🎯  Meta-level design discussion  
+You just handed me a **symmetry-first network blueprint**.  
+Let’s step back and talk **why** each choice is solid (or brittle) before we ever touch a keyboard again.
+
+| Decision | Rationale | Risk window | Mitigation |
+|---|---|---|---|
+| **Single-box dnsmasq** | Simplicity, one source of truth, no replication drama. | Single-point-of-failure for DHCP & DNS. | Keep the box on UPS, run daily rsync of `/etc/dnsmasq.d` + leasefile to a warm spare; swap IPs if the primary dies. |
+| **Perfect /24 symmetry** | Humans love patterns; scripts can generate configs; reverse zone is trivial. | You lock yourself into 126 static + 128 dynamic forever. | If you ever need > 126 static hosts, just carve an adjacent /24 and tag it `lan-2.mycorp.net`—the naming scheme still works. |
+| **One monolithic `00-symmetry.conf`** vs many files | One file is atomic, grep-friendly, git-friendly. | Merge conflicts if two admins edit simultaneously. | Split into **one file per zone** (`10-lan.conf`, `20-dmz.conf`, `30-infra.conf`) and keep `99-static-maps.conf` for MAC overrides. |
+| **dnsmasq as CA certificate source (ACME)** | Keeps everything on the same host; no external dependency. | If dnsmasq is down, ACME-01 challenges fail → certs don’t renew. | Run a **secondary hidden DNS** (another dnsmasq instance on port 5353) that only answers `_acme-challenge.*`; point `acme.sh` at it for DNS-01. |
+| **Flat domain (`*.mycorp.net`)** | Easy to remember, no split-horizon headaches. | Exposes internal hostnames to any guest that gets DNS. | If you later expose guest Wi-Fi, spin up a **separate dnsmasq process** with its own config directory listening only on VLAN 20; it advertises `guest.mycorp.net` while the LAN process advertises `lan.mycorp.net`. |
+| **Static hosts file (`/etc/dnsmasq-static-hosts`)** | Version-controllable, readable, survives dnsmasq restart. | Manual edits grow painful at scale. | Move to **NetBox + pynetbox script** that nightly regenerates `dnsmasq-static-hosts`; keep the symmetry rules in code. |
+| **Reverse zones in dnsmasq** | Works, but dnsmasq auto-generates only for DHCP leases; you manually added `ptr-record` lines. | Risk of drift if you forget to add a PTR for a static host. | Script that parses `/etc/hosts` and spits out the matching `ptr-record` lines; run it as a pre-commit hook. |
+| **No DHCP snooping / trusted port config on switches** | Simple plug-and-play. | Rogue DHCP server can steal leases. | Enable DHCP-snooping on managed switches; trust only the port facing `ns.infra.mycorp.net`. |
+
+---
+
+### 🤔  Future escape hatches (before you paint yourself into a corner)
+
+1. **Scale-out DHCP**:  
+   When you hit ~400 active leases, migrate **only DHCP** to **ISC-KEA** while keeping dnsmasq for DNS.  
+   KEA can still update dnsmasq via DDNS, so your hostnames stay in sync.
+
+2. **DNS views / split-horizon**:  
+   Need an “external” view of `dmz.mycorp.net`?  
+   Run **Unbound** on port 53 (public view) and **dnsmasq** on 5353 (internal view); Unbound forwards the internal zone to dnsmasq.
+
+3. **Secret infra subnet**:  
+   If you ever need a **management network** that guests must never see, create `mgmt.mycorp.net` on a separate interface; dnsmasq will happily serve it with a new `40-mgmt.conf`.
+
+4. **IPv6 symmetry**:  
+   Reserve `fd00:0:0:lan::/64`, `fd00:0:0:dmz::/64`, etc.; dnsmasq handles dual-stack with `dhcp-range=::1000,::1fff,constructor:eth0,24h`.
+
+---
+
+### 🏁  TL;DR  
+Your current design is **elegant and safe for the next 1–2 years**.  
+Treat the single dnsmasq box as a **configuration artifact**, not a pet—keep the configs in Git, run them through CI to generate the hosts + ptr + dhcp files, and you can swap to any back-end later without touching IP plans or hostnames.
+
+---
+
+Below is a concise “decision + implementation” guide that folds the best-practice recommendations from the search results into a set of concrete steps you can take right now.
+
+--------------------------------------------------------------------
+1. When dnsmasq is the right tool
+--------------------------------------------------------------------
+• Small / medium networks (≤ a few hundred hosts per subnet).  
+• You need both DHCP and DNS and want the two to stay in sync automatically (lease → A/AAAA record).  
+• You do NOT need sub-second DHCP failover or thousands of leases; if you do, look at KEA-DHCP instead .
+
+If those bullets fit, dnsmasq is an excellent lightweight choice.
+
+--------------------------------------------------------------------
+2. One file per scope / zone (best-practice layout)
+--------------------------------------------------------------------
+```
+/etc/dnsmasq.d/
+├── 00-global.conf          # upstream DNS, log settings
+├── 10-mgmt.conf            # management VLAN 10
+├── 20-guest.conf           # guest VLAN 20
+├── 30-iot.conf             # IoT VLAN 30
+└── 99-static-maps.conf     # MAC→IP overrides for all subnets
+```
+This keeps each scope small, readable, and under version control.
+
+--------------------------------------------------------------------
+3. Minimal global file (00-global.conf)
+--------------------------------------------------------------------
+```
+# Only answer on the internal NICs
+interface=eno1
+interface=eno2
+bind-interfaces
+
+# Upstream resolvers
+no-resolv
+server=1.1.1.1
+server=8.8.8.8
+
+# DNS search suffix handed out to every client
+domain=my.lab
+expand-hosts
+
+# Lease file & logging
+dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+log-dhcp                # turn off in production if log volume is high
+```
+
+--------------------------------------------------------------------
+4. Example per-scope file (10-mgmt.conf)
+--------------------------------------------------------------------
+```
+# Tag every request that matches this range
+dhcp-range=set:mgmt,192.168.10.50,192.168.10.199,255.255.255.0,24h
+
+# Gateway and DNS for this subnet only
+dhcp-option=tag:mgmt,3,192.168.10.1
+dhcp-option=tag:mgmt,6,192.168.10.2     # this dnsmasq box
+
+# Extra routes (optional)
+dhcp-option=tag:mgmt,121,10.100.0.0/24,192.168.10.1
+```
+The same pattern is repeated for 20-guest.conf, 30-iot.conf, etc.  
+Each file is independent; you can reload or even move them to a second server without touching the others .
+
+--------------------------------------------------------------------
+5. Static reservations (99-static-maps.conf)
+--------------------------------------------------------------------
+```
+# Printers, servers, APs, etc.
+dhcp-host=aa:bb:cc:11:22:33,set:mgmt,192.168.10.10,infinite
+dhcp-host=aa:bb:cc:44:55:66,set:iot,192.168.30.77,infinite
+```
+Using the `set:<tag>` syntax keeps the host in the correct subnet and inherits the subnet-specific options automatically.
+
+--------------------------------------------------------------------
+6. Authoritative vs. split-scope HA
+--------------------------------------------------------------------
+• Single server: add `dhcp-authoritative` to 00-global.conf.  
+• Two-server HA: run a second dnsmasq with a **non-overlapping pool** and add `dhcp-reply-delay=30` on the secondary so it only answers if the primary is dead .
+
+--------------------------------------------------------------------
+7. DNS integration tricks
+--------------------------------------------------------------------
+• Because every lease automatically creates a DNS record, you can reach every host by short name (`ping printer1`) or FQDN (`ping printer1.my.lab`).  
+• If you later need “real” DNS recursion (DNSSEC, DNS64, etc.) you can keep Unbound on port 53 and move dnsmasq to e.g. 5353, then forward Unbound → dnsmasq for the local zones .
+
+--------------------------------------------------------------------
+8. Quick validation checklist
+--------------------------------------------------------------------
+```
+# syntax check
+sudo dnsmasq --test
+
+# restart
+sudo systemctl restart dnsmasq
+
+# watch the tags
+sudo journalctl -fu dnsmasq | grep DHCPACK
+```
+From any client on VLAN 10 you should see:
+```
+DHCPACK(enp0s1) 192.168.10.50 aa:bb:cc:11:22:33 printer1
+```
+and `nslookup printer1` should resolve immediately.
+
+--------------------------------------------------------------------
+Bottom line  
+Start with dnsmasq, keep each subnet in its own file, tag everything, and you’ll have a clean, maintainable DHCP+DNS platform that follows the same patterns used in production labs today .
+
+---
+
+Here is a concise, step-by-step crash course that will get you productive with **dnsmasq** on a minimal Debian 12 server that you only reach via SSH.  
+Everything is copy-paste friendly; run the commands in the order shown.
+
+--------------------------------------------------------------------
+1. Prepare the OS (run once)
+--------------------------------------------------------------------
+```bash
+sudo apt update && sudo apt upgrade -y
+# Prevent Debian’s own stub resolver from clashing
+sudo systemctl disable --now systemd-resolved
+sudo unlink /etc/resolv.conf
+# Give the machine a working upstream DNS while we build our own
+echo -e "nameserver 1.1.1.1\nnameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+```
+
+--------------------------------------------------------------------
+2. Install dnsmasq
+--------------------------------------------------------------------
+```bash
+sudo apt install dnsmasq -y
+sudo systemctl enable --now dnsmasq
+```
+
+--------------------------------------------------------------------
+3. Create a lean config file
+--------------------------------------------------------------------
+Back up the default and drop a new file in `/etc/dnsmasq.d/` so upgrades never overwrite your edits.
+
+```bash
+sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.bak
+sudo nano /etc/dnsmasq.d/01-lab.conf
+```
+
+Paste the following (edit interface/addresses to match your box):
+
+```
+# Listen only on the LAN NIC and loopback
+interface=eth0                 # or enp0s3, ens10, etc.
+listen-address=127.0.0.1,192.168.5.20   # <— your server IP
+
+# DNS part
+cache-size=1000
+no-resolv
+server=1.1.1.1
+server=8.8.8.8
+expand-hosts
+domain=lab.local
+
+# DHCP part (remove if you only want DNS)
+dhcp-range=192.168.5.50,192.168.5.150,24h
+dhcp-option=3,192.168.5.1     # default gateway
+dhcp-option=6,192.168.5.20    # dns server (this box)
+dhcp-authoritative
+```
+
+Save, exit, then test and reload:
+
+```bash
+sudo dnsmasq --test && sudo systemctl restart dnsmasq
+```
+
+--------------------------------------------------------------------
+4. Add any static hostnames you like
+--------------------------------------------------------------------
+```bash
+sudo nano /etc/hosts
+# Example lines
+192.168.5.10  git.lab.local   git
+192.168.5.11  db.lab.local    db
+```
+After saving, the names are immediately resolvable by dnsmasq (no restart needed).
+
+--------------------------------------------------------------------
+5. Make the server use its own dnsmasq
+--------------------------------------------------------------------
+```bash
+sudo nano /etc/resolv.conf
+# First nameserver must be localhost
+nameserver 127.0.0.1
+```
+
+--------------------------------------------------------------------
+6. Verify from the server itself
+--------------------------------------------------------------------
+```bash
+dig +short git.lab.local        # → 192.168.5.10
+dig +short debian.org           # → some IP (proves upstream works)
+```
+
+--------------------------------------------------------------------
+7. Open the firewall (if you use ufw)
+--------------------------------------------------------------------
+```bash
+sudo ufw allow from 192.168.5.0/24 to any port 53
+sudo ufw allow from 192.168.5.0/24 to any port 67  # only if you enabled DHCP
+```
+
+--------------------------------------------------------------------
+8. Point a client at it (quick test from your laptop)
+--------------------------------------------------------------------
+Temporarily override your laptop’s DNS:
+
+```bash
+# Linux / macOS
+sudo resolvectl dns eth0 192.168.5.20
+dig git.lab.local
+```
+
+--------------------------------------------------------------------
+9. Watch the logs
+--------------------------------------------------------------------
+```bash
+sudo journalctl -fu dnsmasq
+```
+
+That’s it—you now have a local DNS cache, custom domain names, and (optionally) a DHCP server running on your minimal Debian 12 box.  
+For deeper tweaks, the heavily-commented `/etc/dnsmasq.conf` and any files under `/etc/dnsmasq.d/` are your playground.
+
+---
+
+Below is a single, opinionated, **Debian-only** decade scheme that you can clone into `/etc/linux-decades/` (or keep in Git and symlink).  
+Everything is pure Debian tooling—`apt`, `debconf`, `systemd`, `sysctl.d`, `sudoers.d`, `nftables`, etc.—no network-centric artifacts.
+
+Directory layout (drop-in ready):
+
+```
+/etc/linux-decades/
+├── 00_bootstrap/
+│   ├── 00_00_installer_seed.cfg          # preseed / cloud-init
+│   ├── 00_10_register_debian_mirror.sh   # sources.list generator
+│   └── 00_20_first_boot_update.sh
+├── 10_system/
+│   ├── 10_00_hostname_timezone.sh
+│   ├── 10_10_ntp_chrony.conf
+│   ├── 10_20_dns_resolved.conf
+│   └── 10_30_sysctl_hardening.conf
+├── 20_identity/
+│   ├── 20_00_users_groups.yml          # Ansible / plain YAML for loop
+│   ├── 20_10_sudoers.d/                # one file per rule
+│   ├── 20_20_sshd_config_fragment.conf
+│   └── 20_30_authorized_keys/          # keys by username
+├── 30_storage/
+│   ├── 30_00_luks_btrfs_subvols.sh
+│   ├── 30_10_lvm_thinpool.sh
+│   ├── 30_20_fstab_mounts.conf
+│   └── 30_30_zram_generator.conf
+├── 40_packages/
+│   ├── 40_00_sources_list_debian.sh
+│   ├── 40_10_essential_packages.lst
+│   ├── 40_20_backports_pin.pref
+│   └── 40_30_flatpak_remote.sh
+├── 50_services/
+│   ├── 50_00_unit_templates/
+│   │   ├── backup@.service
+│   │   └── podman@.service
+│   └── 50_10_enable_units.sh          # systemctl preset-all helper
+├── 60_runtime/
+│   ├── 60_00_nginx_sites/
+│   ├── 60_10_postgres_conf.d/
+│   ├── 60_20_logrotate_d/
+│   └── 60_30_cron_dropins/
+├── 70_performance/
+│   ├── 70_00_cgroup_v2_enable.sh
+│   ├── 70_10_cpu_governor.sh
+│   ├── 70_20_irqbalance_ban.conf
+│   └── 70_30_tuned_profile.conf
+├── 80_security/
+│   ├── 80_00_nftables_rules.nft
+│   ├── 80_10_fail2ban_jail.local
+│   ├── 80_20_apparmor_profiles/
+│   └── 80_30_aide_daily.timer
+└── 90_local/
+    ├── 90_00_site_overrides.sh
+    └── 99_zz_last_minute_fix.sh
+```
+
+Minimal glue to wire it together
+
+1. Create `/etc/linux-decades/apply.sh`:
+   ```bash
+   #!/bin/bash
+   set -euo pipefail
+   for d in /etc/linux-decades/*/; do
+       for f in "$d"*; do
+           [[ -x "$f" ]] && "$f"
+       done
+   done
+   ```
+   Make it executable.  
+   Run once at first boot, or from a systemd one-shot.
+
+2. One-shot systemd unit (`/etc/systemd/system/decades-apply.service`):
+   ```
+   [Unit]
+   Description=Apply decade-scheme configuration
+   ConditionPathExists=!/var/lib/decades-applied.stamp
+
+   [Service]
+   Type=oneshot
+   ExecStart=/etc/linux-decades/apply.sh
+   ExecStartPost=/bin/touch /var/lib/decades-applied.stamp
+   RemainAfterExit=yes
+   ```
+   Enable it so first boot only triggers once.
+
+3. Optional `debconf` integration  
+   Use `db_get`/`db_set` in decade-00 scripts if you want fully unattended installs.
+
+Golden rules (to keep it “perfect”)
+
+• Filenames **must** start with their decade prefix (`00_`, `10_`, …).  
+• Every executable script must be idempotent (safe to run twice).  
+• Non-executable snippets (`.conf`, `.d/` drop-ins) are copied or symlinked by a small helper in the same decade directory.  
+• Never put anything in `90_local/` that you expect to keep—treat it as a parking lot for today’s emergency patch.
+
+Drop this tree into Git, clone to any new Debian box, run `apply.sh`, and your decade scheme is live.
+
+---
+
+Below is a **symmetry-preserving IPv6 catch-up plan** that plugs straight into the single-box dnsmasq design you already run.  
+It keeps the same four axioms (clock-face splits, piano-key roles, monospaced logs, prime silence) and **does not break any existing IPv4 or ACME flow**.
+
+---
+
+### 1. Pick a **static, provider-independent** prefix
+- Ask your ISP for a **/48** (or use Hurricane-Electric tunnel-broker /48 if native is unavailable).  
+- Slice it **exactly like the IPv4 /8** you already carved:
+
+| IPv6 zone | Prefix                        | Mirror of IPv4 zone |
+|-----------|-------------------------------|---------------------|
+| LAN       | `2001:db8:c0de:1000::/64`     | 10.0.0.0/24         |
+| DMZ       | `2001:db8:c0de:2000::/64`     | 10.0.1.0/24         |
+| INFRA     | `2001:db8:c0de:ffff::/64`     | 10.0.255.0/28       |
+
+> The **final nibble** (`1000`, `2000`, `ffff`) keeps the Mondrian colour map intact.
+
+---
+
+### 2. dnsmasq dual-stack delta (only three new lines)
+Create `/etc/dnsmasq.d/30-ipv6.conf`
+
+```ini
+# ---- GLOBAL V6 ----
+enable-ra
+dhcp-range=lan,2001:db8:c0de:1000::,ra-names,slaac,12h
+dhcp-range=dmz,2001:db8:c0de:2000::,ra-names,slaac,12h
+dhcp-range=infra,2001:db8:c0de:ffff::,static,64,12h
+
+# Mirror the IPv4 half-split
+dhcp-range=lan,2001:db8:c0de:1000::1000,2001:db8:c0de:1000::7ffe,12h
+dhcp-range=dmz,2001:db8:c0de:2000::1000,2001:db8:c0de:2000::7ffe,12h
+```
+
+- `ra-names` auto-creates AAAA from the existing IPv4 lease → **monospaced Zen** preserved.  
+- `.1000` → `.7ffe` keeps the **clock-face split** (first half static, second half stateful).
+
+---
+
+### 3. Reverse zones (RFC 3596)
+Add to the same single file:
+
+```ini
+# ---- V6 REVERSE ----
+# 0.0.1.0.e.d.o.c.8.b.d.0.1.0.0.2.ip6.arpa
+auth-zone=0.0.1.0.e.d.o.c.8.b.d.0.1.0.0.2.ip6.arpa
+auth-zone=0.0.2.0.e.d.o.c.8.b.d.0.1.0.0.2.ip6.arpa
+auth-zone=f.f.f.f.0.e.d.o.c.8.b.d.0.1.0.0.2.ip6.arpa
+```
+
+---
+
+### 4. Static hosts (mirror the IPv4 file)
+Append to `/etc/dnsmasq-static-hosts`:
+
+```
+# INFRA IPv6
+2001:db8:c0de:ffff::1  ns-01.infra.mycorp.net
+2001:db8:c0de:ffff::2  gw-01.infra.mycorp.net
+
+# LAN IPv6
+2001:db8:c0de:1000::1  gw-01.lan.mycorp.net
+2001:db8:c0de:1000::2  wifi-01.lan.mycorp.net
+
+# DMZ IPv6
+2001:db8:c0de:2000::1  gw-01.dmz.mycorp.net
+2001:db8:c0de:2000::5  web-01.dmz.mycorp.net
+```
+
+---
+
+### 5. ACME / certs
+- **AAAA records** are auto-published by `ra-names` → same CN (`ns-01.infra.mycorp.net`) now resolves to both A and AAAA.  
+- **No change** to the existing ACME flow; dnsmasq still answers `_acme-challenge` over IPv4 or IPv6.
+
+---
+
+### 6. Quick verification
+```bash
+# RA is live
+ip -6 addr show dev eth0
+# dnsmasq hands out addresses
+dig +short AAAA ns-01.infra.mycorp.net @::1
+# → 2001:db8:c0de:ffff::1
+```
+
+---
+
+### 7. Future-proof checklist
+- **Privacy extensions** disabled via `ra-names` (keeps reverse symmetry).  
+- **ULA fallback** optional (`fd00:0:0:1000::/64`) for offline labs; same split rules apply.  
+- **Firewall** mirrors IPv4 policy (ip6tables stateful, same prime-hour reloads).
+
+---
+
+Result: you now have **dual-stack, zero-drift, haiku-grade addressing** without touching the existing IPv4 or ACME automation.
+
 
 ## if you've read this far reach out!  this is a complete datadump of more ideas to tie everything together.  it's about learning abstracting and applying rigor or in this case fibs to debine order
