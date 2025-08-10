@@ -1,5 +1,4 @@
-Perfect — here’s your **Double-Purpose MVP Blueprint**
-*(designed so you can deliver a working demo AND sell the narrative without giving away the magic sauce)*
+### where to get started
 
 ---
 
