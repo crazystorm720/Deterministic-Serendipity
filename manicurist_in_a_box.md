@@ -88,6 +88,90 @@ This README:
 3. Provides validation requirements
 4. Enforces object-layer purity
 
+---
+
+Here’s a **strict object-definition table** for your manicurist YAML system, treating each entity as a discrete data container with no workflow contamination:
+
+---
+
+### **Manicurist Object Schema**  
+
+| Object File  | Required Fields               | Optional Fields       | Immutable Fields      | Data Type Rules                  |
+|--------------|-------------------------------|-----------------------|-----------------------|----------------------------------|
+| **polish.yml** | `identifier` (string)<br>`name` (string)<br>`type` ("classic"\|"gel"\|"dip")<br>`quantity` (integer ≥0) | `metadata` (key-value pairs) | `identifier`          | `type` must match enum values    |
+| **service.yml** | `code` (string)<br>`name` (string)<br>`base_price` (float ≥0) | `requires` (list of material categories) | `code`                | `base_price` must have 2 decimal places |
+| **client.yml** | `client_id` (string)          | `restrictions` (list of allergy/condition tags)<br>`preferences` (list of style tags) | `client_id`           | Tags must be lowercase snake_case |
+
+---
+
+### **Field Definitions**  
+
+#### **polish.yml**  
+- `identifier`: Vendor SKU or custom ID (e.g., `"OPI-123-BB"`)  
+- `quantity`: **Physical** bottles in kit (no projections)  
+- `metadata`: Free-form (e.g., `purchase_date: "2023-11-01"`)  
+
+#### **service.yml**  
+- `code`: Machine-readable ID (e.g., `"CM30"` for 30min Classic Manicure)  
+- `requires`: Material categories (e.g., `["classic_polish", "base_coat"]`)  
+
+#### **client.yml**  
+- `restrictions`: Safety tags only (e.g., `["acetone_allergy"]`)  
+- `preferences`: Non-critical tags (e.g., `["square_shape", "no_file_shaping"]`)  
+
+---
+
+### **Object Interaction Rules**  
+
+1. **No Cross-References**  
+   - Never link objects (e.g., no `service` in `client.yml`)  
+   - Never calculate fields (e.g., no `total_value` in `polish.yml`)  
+
+2. **Validation Command**  
+   ```bash
+   # Verify schema compliance
+   yamllint -d "{extends: relaxed, rules: {trailing-spaces: disable}}" *.yml
+   ```
+
+3. **Example Valid Objects**  
+   ```yaml
+   # polish.yml
+   items:
+     - identifier: "GEL-456-TC"
+       name: "Gel Top Coat"
+       type: "gel"
+       quantity: 2
+
+   # service.yml
+   offerings:
+     - code: "GR15"
+       name: "Gel Removal"
+       base_price: 10.00
+
+   # client.yml
+   profiles:
+     - client_id: "CL-2023-001"
+       restrictions: ["acetone_allergy"]
+   ```
+
+---
+
+### **Change Control**  
+| Operation    | Allowed On                | Example                  |
+|-------------|---------------------------|--------------------------|
+| **Create**  | Any object with all required fields | `Add new polish entry` |
+| **Update**  | Only `quantity` and `metadata` (polish.yml)<br>Only `preferences` (client.yml) | `Update polish quantity from 2 → 1` |
+| **Delete**  | Full objects only          | `Remove discontinued polish` |
+
+---
+
+This maintains **pure object-layer integrity** with:  
+- No inventory management logic  
+- No appointment scheduling traces  
+- No derived/calculated fields  
+
+Need to add an `equipment.yml` object type while preserving these constraints?
+
 Would you like to add:
 1. Schema diagram (Mermaid.js)
 2. Example validation script
