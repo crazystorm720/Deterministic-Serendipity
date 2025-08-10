@@ -1,3 +1,687 @@
+Perfect — here’s your **Double-Purpose MVP Blueprint**
+*(designed so you can deliver a working demo AND sell the narrative without giving away the magic sauce)*
+
+---
+
+## **I. Narrative Layer — “Bounded Chaos → Deterministic Serendipity”**
+
+**Pitch Script:**
+
+> This box takes high-level human intent and turns it into a compliant, production-ready runtime state — automatically — every time.
+> No hidden defaults, no silent failures.
+> Each change reinforces the system’s stability, so we get **predictable outcomes from complex rules**.
+
+Core metaphors for decision makers:
+
+* **Fibonacci sequencing** → “Grows like nature, without collisions.”
+* **Prime-number silence** → “Quiet spaces for stability, like rest notes in music.”
+* **Piano-key roles** → “Easy to identify, easy to play.”
+
+---
+
+## **II. Technical Layer — MVP Stack (Pi/Docker-Ready)**
+
+### **1. Overview**
+
+You’ll run a **single Docker container** on a Raspberry Pi that:
+
+1. Reads an `intent.cue` config file (human intent)
+2. Validates it with CUE (structured, error-free)
+3. Uses **Fibonacci** to allocate subnets & host IDs
+4. Applies **Prime-number silence** to skip certain assignments
+5. Fills a **Jinja2 template** to create a `docker-compose.yml`
+6. Deploys the stack
+7. Runs a compliance audit to prove everything matches the declared policy
+
+---
+
+### **2. Folder Layout**
+
+```
+bounded-chaos-mvp/
+│
+├── Dockerfile
+├── docker-compose.yml       # Bootstraps the MVP service itself
+├── app/
+│   ├── main.py               # Glue logic: CUE → Jinja2 → Compose
+│   ├── fib_primes.py         # Fibonacci & Prime-number utilities
+│   ├── templates/
+│   │   └── docker-compose.j2 # Jinja2 template for runtime stack
+│   ├── compliance.py         # Simple rule checks
+│   └── schema.cue            # Validates intent
+└── intent.cue                # Your human intent file
+```
+
+---
+
+### **3. Example `intent.cue`**
+
+```cue
+network: "OfficeNet"
+subnets: 5
+rolePattern: "piano-key"
+compliance: ["no-overlap", "vpn-required"]
+services: [
+    {
+        name: "nextcloud"
+        role: "storage"
+    },
+    {
+        name: "openvpn"
+        role: "security"
+    }
+]
+```
+
+---
+
+### **4. Example `docker-compose.j2`**
+
+```yaml
+version: "3.9"
+services:
+{% for svc in services %}
+  {{ svc.name }}:
+    image: {{ svc.image }}
+    networks:
+      - net{{ svc.subnet }}
+    environment:
+      ROLE: {{ svc.role }}
+{% endfor %}
+
+{% for net in networks %}
+networks:
+  net{{ net.id }}:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: {{ net.subnet }}
+{% endfor %}
+```
+
+---
+
+### **5. Main Flow in `main.py`**
+
+```python
+import subprocess, json
+from fib_primes import generate_fib_subnets, prime_silence
+from jinja2 import Environment, FileSystemLoader
+import cueparser  # wrapper around `cue` CLI
+
+# 1. Validate & parse intent
+cueparser.validate("schema.cue", "intent.cue")
+intent = cueparser.export("intent.cue")
+
+# 2. Allocate subnets with Fibonacci
+subnets = generate_fib_subnets(intent["subnets"])
+
+# 3. Apply prime-number silence
+subnets = prime_silence(subnets)
+
+# 4. Fill Jinja2 template
+env = Environment(loader=FileSystemLoader("templates"))
+template = env.get_template("docker-compose.j2")
+compose_yaml = template.render(services=intent["services"], networks=subnets)
+
+# 5. Save & deploy
+with open("docker-compose.generated.yml", "w") as f:
+    f.write(compose_yaml)
+
+subprocess.run(["docker-compose", "-f", "docker-compose.generated.yml", "up", "-d"])
+```
+
+---
+
+### **6. Compliance Checks (`compliance.py`)**
+
+* Verify no overlapping subnets
+* Ensure all declared compliance rules are satisfied
+* Output pass/fail in a single, easy-to-read table for demo purposes
+
+---
+
+## **III. Weekend Build Roadmap**
+
+**Day 1 (3–5 hours)**
+
+* Install Docker, CUE, Python on Pi
+* Create `schema.cue` for validation
+* Write `fib_primes.py` to generate clean allocations
+* Build Jinja2 template
+
+**Day 2 (3–5 hours)**
+
+* Write `main.py` glue logic
+* Create `docker-compose.generated.yml` dynamically
+* Add compliance checks
+* Test with 2–3 example intents
+
+---
+
+## **IV. Demo Script**
+
+1. Show a blank Pi on desk → SSH in.
+2. Show `intent.cue` (plain English config).
+3. Run `python main.py` → stack deploys in under a minute.
+4. Show services running (`docker ps`).
+5. Show compliance report — all rules pass.
+6. End with: “This is bounded chaos producing deterministic serendipity.”
+
+---
+
+## **V. Monetization Paths**
+
+* **Sell the appliance** → prebuilt Pi, industry-specific compliance profile
+* **Sell the framework** → license the CUE schemas + compliance logic
+* **Sell services** → charge for custom “intent profiles” per client
+
+---
+
+Nice — below is a **complete, runnable MVP code bundle** you can drop onto a Raspberry Pi (or any Linux box with Docker) and run. It follows the plan: **CUE → Fibonacci subnets + prime silence → Jinja2 → docker-compose → deploy**.
+
+I kept it pragmatic: the orchestration app runs as a plain Python script on the Pi (no extra container required), reads `intent.cue` via the `cue` CLI, generates `docker-compose.generated.yml`, and calls `docker compose up -d`. Follow the quick-start after the files.
+
+---
+
+# Files (create a folder `bounded-chaos-mvp/` and add these files)
+
+## 1) `requirements.txt`
+
+```text
+Jinja2>=3.0
+```
+
+*(Only Jinja2 is required in Python — we rely on the `cue` CLI and Docker installed on the host.)*
+
+---
+
+## 2) `intent.cue` (example)
+
+```cue
+// intent.cue
+package intent
+
+network: "OfficeNet"
+subnets: 5
+baseSubnet: "10.10.0.0/16" // used as allocation space; Fibonacci steps allocate /24s inside this
+rolePattern: "piano-key"
+compliance: ["no-overlap", "vpn-required"]
+
+services: [
+  {
+    name: "nextcloud"
+    role: "storage"
+    image: "nextcloud:latest"
+  },
+  {
+    name: "openvpn"
+    role: "security"
+    image: "kylemanna/openvpn:latest"
+  }
+]
+```
+
+---
+
+## 3) `schema.cue` (lightweight — used for future validation)
+
+```cue
+// schema.cue
+package intent
+
+network: string
+subnets: int
+baseSubnet: string
+rolePattern: string
+compliance: [...string]
+services: [...{
+    name: string
+    role: string
+    image: string
+}]
+```
+
+> Note: `cue vet` / `cue export` will use this if you place it next to `intent.cue`. It’s minimal — expand it later for stricter policies.
+
+---
+
+## 4) `app/fib_primes.py`
+
+```python
+# app/fib_primes.py
+from ipaddress import IPv4Network, IPv4Address
+import math
+
+def fib_sequence(n):
+    """Return first n Fibonacci numbers (1-indexed, starting 1,1,2,3...)."""
+    if n <= 0:
+        return []
+    seq = [1, 1]
+    while len(seq) < n:
+        seq.append(seq[-1] + seq[-2])
+    return seq[:n]
+
+def is_prime(num):
+    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0:
+        return False
+    r = int(math.sqrt(num))
+    for i in range(3, r+1, 2):
+        if num % i == 0:
+            return False
+    return True
+
+def generate_fib_subnets(count, base_cidr="10.10.0.0/16"):
+    """
+    Produce `count` distinct /24 subnets spaced by Fibonacci offsets inside base_cidr.
+    Returns list of dicts: { id: n, subnet: "10.10.X.0/24" }
+    """
+    base = IPv4Network(base_cidr)
+    if base.prefixlen > 24:
+        raise ValueError("base_cidr must be /24 or larger (i.e., smaller prefix number)")
+
+    fibs = fib_sequence(count)
+    # We'll place each /24 starting from base.network_address and step by fib value.
+    # compute number of /24s available in base
+    available = 2 ** (24 - base.prefixlen)
+    subnets = list(base.subnets(new_prefix=24))
+    results = []
+    offset = 0
+    for idx, f in enumerate(fibs, start=1):
+        offset = (offset + f) % available
+        net = subnets[offset]
+        results.append({"id": idx, "subnet": str(net)})
+    return results
+
+def prime_silence(subnets):
+    """
+    Apply prime-number silence: remove (or flag) any host-slot where id is prime.
+    For this MVP we will simply mark subnets with prime ids as 'silent': True
+    """
+    out = []
+    for s in subnets:
+        s_copy = s.copy()
+        s_copy["silent"] = is_prime(s_copy["id"])
+        out.append(s_copy)
+    return out
+```
+
+---
+
+## 5) `app/compliance.py`
+
+```python
+# app/compliance.py
+from ipaddress import IPv4Network
+
+def no_overlap(networks):
+    nets = [IPv4Network(n["subnet"]) for n in networks if not n.get("silent", False)]
+    for i in range(len(nets)):
+        for j in range(i+1, len(nets)):
+            if nets[i].overlaps(nets[j]):
+                return False, f"Overlap: {nets[i]} vs {nets[j]}"
+    return True, "no overlap"
+
+def check_compliance(intent, networks):
+    results = {}
+    # no-overlap
+    if "no-overlap" in intent.get("compliance", []):
+        ok, msg = no_overlap(networks)
+        results["no-overlap"] = {"ok": ok, "msg": msg}
+    # vpn-required (simple check: service named openvpn present)
+    if "vpn-required" in intent.get("compliance", []):
+        has_vpn = any(s.get("name") == "openvpn" for s in intent.get("services", []))
+        results["vpn-required"] = {"ok": has_vpn, "msg": "openvpn present" if has_vpn else "openvpn missing"}
+    return results
+```
+
+---
+
+## 6) `app/templates/docker-compose.j2`
+
+```jinja
+version: "3.9"
+services:
+{% for svc in services %}
+  {{ svc.name }}:
+    image: {{ svc.image }}
+    restart: unless-stopped
+    networks:
+      - net{{ svc.subnet_id }}
+    environment:
+      ROLE: "{{ svc.role }}"
+{% endfor %}
+
+networks:
+{% for net in networks %}
+  net{{ net.id }}:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: {{ net.subnet }}
+{% endfor %}
+```
+
+---
+
+## 7) `main.py` (top-level in repo)
+
+```python
+# main.py
+import subprocess
+import json
+import os
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from app.fib_primes import generate_fib_subnets, prime_silence
+from app.compliance import check_compliance
+
+CUE_INTENT_FILE = "intent.cue"
+GENERATED_COMPOSE = "docker-compose.generated.yml"
+TEMPLATE_DIR = "app/templates"
+
+def load_intent_via_cue(path):
+    """Use cue export to get JSON representation of intent.cue"""
+    try:
+        # cue export intent.cue -f json
+        res = subprocess.run(["cue", "export", path, "-f", "json"], capture_output=True, text=True, check=True)
+        return json.loads(res.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Error running `cue export` — make sure `cue` is installed and intent.cue is valid.")
+        print(e.stdout)
+        print(e.stderr)
+        raise
+
+def map_services_to_subnets(services, networks):
+    """Attach a subnet id to each service in round-robin fashion, skipping silent subnets."""
+    active_nets = [n for n in networks if not n.get("silent", False)]
+    if not active_nets:
+        raise RuntimeError("No active networks available after prime-silence.")
+    mapped = []
+    for i, svc in enumerate(services):
+        net = active_nets[i % len(active_nets)]
+        mapped.append({
+            "name": svc.get("name"),
+            "role": svc.get("role"),
+            "image": svc.get("image"),
+            "subnet_id": net["id"],
+            "subnet": net["subnet"]
+        })
+    return mapped
+
+def render_compose(services_mapped, networks):
+    env = Environment(
+        loader=FileSystemLoader(TEMPLATE_DIR),
+        autoescape=select_autoescape()
+    )
+    tmpl = env.get_template("docker-compose.j2")
+    rendered = tmpl.render(services=services_mapped, networks=networks)
+    with open(GENERATED_COMPOSE, "w") as f:
+        f.write(rendered)
+    print(f"Generated {GENERATED_COMPOSE}")
+
+def deploy_compose():
+    # Use docker compose (v2) if available, otherwise docker-compose
+    if shutil.which("docker"):
+        # prefer `docker compose`
+        cmd = ["docker", "compose", "-f", GENERATED_COMPOSE, "up", "-d"]
+    else:
+        cmd = ["docker-compose", "-f", GENERATED_COMPOSE, "up", "-d"]
+    print("Deploying stack:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
+
+import shutil
+def main():
+    # 1. Load intent
+    intent = load_intent_via_cue(CUE_INTENT_FILE)
+    # 2. Generate Fibonacci subnets
+    count = intent.get("subnets", 3)
+    base = intent.get("baseSubnet", "10.10.0.0/16")
+    nets = generate_fib_subnets(count, base)
+    # 3. Apply prime-number silence
+    nets = prime_silence(nets)
+    print("Networks (after prime silence):")
+    for n in nets:
+        print(n)
+    # 4. Compliance checks
+    compliance = check_compliance(intent, nets)
+    print("Compliance results:")
+    print(json.dumps(compliance, indent=2))
+    # 5. Map services to subnets
+    services_mapped = map_services_to_subnets(intent.get("services", []), nets)
+    # 6. Render compose
+    render_compose(services_mapped, nets)
+    # 7. Deploy
+    print("To deploy, run: docker compose -f docker-compose.generated.yml up -d")
+    # Optionally auto-deploy (commented by default)
+    # deploy_compose()
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## 8) Optional: top-level `README_RUN.sh` (quick-run helper)
+
+```bash
+#!/usr/bin/env bash
+set -e
+# 1) Install Python deps
+python3 -m pip install --user -r requirements.txt
+
+# 2) Ensure cue is installed and docker is installed on your Pi.
+# Install CUE: https://cuelang.org/docs/install/  (Follow platform instructions)
+# Install Docker: https://docs.docker.com/engine/install/
+
+# 3) Run the generator
+python3 main.py
+
+# 4) Start the generated stack
+docker compose -f docker-compose.generated.yml up -d
+```
+
+---
+
+# Quick-start (what to run on the Pi)
+
+1. Install prerequisites on the Pi
+
+   * Docker & Docker Compose plugin (or docker-compose)
+   * `cue` CLI (follow [https://cuelang.org/docs/install/](https://cuelang.org/docs/install/))
+   * Python 3.11+ and pip
+
+2. Put files in `bounded-chaos-mvp/` as shown, then:
+
+```bash
+cd bounded-chaos-mvp
+python3 -m pip install --user -r requirements.txt
+python3 main.py
+# Now inspect generated file:
+less docker-compose.generated.yml
+# Deploy:
+docker compose -f docker-compose.generated.yml up -d
+# See running containers:
+docker ps
+```
+
+---
+
+# Notes, caveats, and next-steps (short)
+
+* **CUE usage:** This MVP uses the `cue` CLI to export `intent.cue` as JSON. If you prefer not to install CUE, I can supply a YAML/JSON alternative parser to avoid that dependency.
+* **Prime-silence behavior:** Right now, prime IDs are *marked silent* and skipped for service assignment. You can choose to reserve them (no services) or use them for special-purpose hosts (monitoring, bastion).
+* **Subnet math:** This uses `/24` subnets inside a larger `baseSubnet`. You can change granularity easily.
+* **Security:** This MVP is demo-focused. For any customer or production use, add secure defaults, hardened images, secrets handling, and a policy audit trail (e.g., store intent and generated artifacts with immutable timestamps + signatures).
+* **Monetization hooks:** Make the CUE schemas the productized policy bundles (industry profiles). The Pi appliance + one-click installer = demo box you can sell or use to onboard clients.
+
+---
+
+Got it — we’ll **drop the CUE CLI dependency** and make the intent file a plain YAML or JSON.
+This means you can run it on a Raspberry Pi with *just* Python, Docker, and Jinja2 installed — no `cue` binary needed.
+
+Here’s the **CUE-free version** of the MVP.
+
+---
+
+## Changes:
+
+1. **intent.yaml** replaces `intent.cue`
+2. No `schema.cue`
+3. The loader in `main.py` now uses Python’s `yaml` library.
+4. Added PyYAML to `requirements.txt`.
+
+---
+
+### 1) `requirements.txt`
+
+```text
+Jinja2>=3.0
+PyYAML>=6.0
+```
+
+---
+
+### 2) `intent.yaml` (example intent)
+
+```yaml
+network: OfficeNet
+subnets: 5
+baseSubnet: 10.10.0.0/16
+rolePattern: piano-key
+compliance:
+  - no-overlap
+  - vpn-required
+services:
+  - name: nextcloud
+    role: storage
+    image: nextcloud:latest
+  - name: openvpn
+    role: security
+    image: kylemanna/openvpn:latest
+```
+
+---
+
+### 3) Updated `main.py`
+
+```python
+# main.py
+import os
+import json
+import shutil
+import yaml
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from app.fib_primes import generate_fib_subnets, prime_silence
+from app.compliance import check_compliance
+
+INTENT_FILE = "intent.yaml"
+GENERATED_COMPOSE = "docker-compose.generated.yml"
+TEMPLATE_DIR = "app/templates"
+
+def load_intent_yaml(path):
+    """Load intent.yaml as dict"""
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Intent file {path} not found")
+    with open(path, "r") as f:
+        return yaml.safe_load(f)
+
+def map_services_to_subnets(services, networks):
+    """Attach a subnet id to each service in round-robin fashion, skipping silent subnets."""
+    active_nets = [n for n in networks if not n.get("silent", False)]
+    if not active_nets:
+        raise RuntimeError("No active networks available after prime-silence.")
+    mapped = []
+    for i, svc in enumerate(services):
+        net = active_nets[i % len(active_nets)]
+        mapped.append({
+            "name": svc.get("name"),
+            "role": svc.get("role"),
+            "image": svc.get("image"),
+            "subnet_id": net["id"],
+            "subnet": net["subnet"]
+        })
+    return mapped
+
+def render_compose(services_mapped, networks):
+    env = Environment(
+        loader=FileSystemLoader(TEMPLATE_DIR),
+        autoescape=select_autoescape()
+    )
+    tmpl = env.get_template("docker-compose.j2")
+    rendered = tmpl.render(services=services_mapped, networks=networks)
+    with open(GENERATED_COMPOSE, "w") as f:
+        f.write(rendered)
+    print(f"Generated {GENERATED_COMPOSE}")
+
+def deploy_compose():
+    if shutil.which("docker"):
+        cmd = ["docker", "compose", "-f", GENERATED_COMPOSE, "up", "-d"]
+    else:
+        cmd = ["docker-compose", "-f", GENERATED_COMPOSE, "up", "-d"]
+    print("Deploying stack:", " ".join(cmd))
+    os.system(" ".join(cmd))
+
+def main():
+    # 1. Load intent
+    intent = load_intent_yaml(INTENT_FILE)
+    # 2. Generate Fibonacci subnets
+    count = intent.get("subnets", 3)
+    base = intent.get("baseSubnet", "10.10.0.0/16")
+    nets = generate_fib_subnets(count, base)
+    # 3. Apply prime-number silence
+    nets = prime_silence(nets)
+    print("Networks (after prime silence):")
+    for n in nets:
+        print(n)
+    # 4. Compliance checks
+    compliance = check_compliance(intent, nets)
+    print("Compliance results:")
+    print(json.dumps(compliance, indent=2))
+    # 5. Map services to subnets
+    services_mapped = map_services_to_subnets(intent.get("services", []), nets)
+    # 6. Render compose
+    render_compose(services_mapped, nets)
+    # 7. Deploy (optional — manual start recommended first)
+    print("To deploy, run: docker compose -f docker-compose.generated.yml up -d")
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+### 4) Everything else (fib\_primes.py, compliance.py, docker-compose.j2)
+
+Unchanged from the previous version — just keep those in the same `app/` structure.
+
+---
+
+## How to run on Raspberry Pi
+
+```bash
+# 1. Install dependencies
+python3 -m pip install --user -r requirements.txt
+
+# 2. Edit intent.yaml to your needs
+nano intent.yaml
+
+# 3. Generate docker-compose file
+python3 main.py
+
+# 4. Review & start containers
+docker compose -f docker-compose.generated.yml up -d
+```
+
+---
+
+
+
+Also I can produce a **packaged ZIP** of these files ready to `scp` onto a Pi — say the word and I’ll generate it.
+
 ### The OCI setup gives you enterprise-grade infrastructure at zero cost, while the schema design supports both your immediate needs and future expansion into contracts, more sophisticated AI analysis, and larger client bases.
 
 # Data Mining Opportunities in Grants.gov XML Extract
