@@ -1137,7 +1137,7 @@ Would you like me to elaborate on any of these analysis approaches or suggest sp
 - 10TB monthly data transfer handles all your API calls and client deliveries
 
 **Backup/Development: Home Lab**
-- Keep a local PostgreSQL instance for development and testing
+- Keep a local PostgreSQL instance for development and testing <--- use mongodb instead this is an earlier iteration.  go with ubuntu for everything else arch or you don't need my advise here
 - Use it for experimentation without affecting production
 - Disaster recovery backup location
 
