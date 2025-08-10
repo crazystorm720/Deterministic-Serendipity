@@ -854,6 +854,12 @@ if __name__ == "__main__":
 
 ---
 ###### too lazy to trim the raw data so little by little I'll clean this up but until then - LGTM 👍
+
+Career Pivot Blueprint
+- Corporate phase (AT&T, Verizon, AWS): Learned systems at scale
+- Consulting phase (TBX): Sold solutions, not just tech
+- Founder phase (Dynamic Impact or maybe another name soon): Productized his framework
+ 
 ## 8) Optional: top-level `README_RUN.sh` (quick-run helper)
 
 ```bash
