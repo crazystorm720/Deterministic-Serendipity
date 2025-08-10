@@ -14,7 +14,7 @@
 - {mondodb|postgresql|timescaledb} <--- local/remote * production grade
 - self-host everything
 - /22 subnet and use fibs to bound symmetry and plan things from there!
-- latex/pandoc/markdown/mermaid/gitea{self-hosted}
+- latex/pandoc/markdown/mermaid/gitea{self-hosted} <--- ###### the hidden secret in this entire system
 - git
 
 ## llm
