@@ -1787,7 +1787,7 @@ FULL GRAMMAR
 role  :  C|D|E|F|G|A|B  (white-key)  
 seq   :  01–88           (black-key)  
 zone  :  infra|lan|dmz|guest
-
+too lazy to trim the raw data so little by little I'll clean this up but until then - LGTM 👍
 ──────────────────────────────────────────────
 EXAMPLES
 
@@ -2112,7 +2112,7 @@ We only touch three artefacts:
 3. **A one-shot linter** that refuses any hostname, IP, or cert that violates the eight axioms.
 
 ---
-
+too lazy to trim the raw data so little by little I'll clean this up but until then - LGTM 👍
 ### 1. Schema manifest (`mycorp-haiku.json`)
 ```jsonc
 {
@@ -3049,7 +3049,7 @@ and `nslookup printer1` should resolve immediately.
 --------------------------------------------------------------------
 Bottom line  
 Start with dnsmasq, keep each subnet in its own file, tag everything, and you’ll have a clean, maintainable DHCP+DNS platform that follows the same patterns used in production labs today .
-
+too lazy to trim the raw data so little by little I'll clean this up but until then - LGTM 👍
 ---
 
 Here is a concise, step-by-step crash course that will get you productive with **dnsmasq** on a minimal Debian 12 server that you only reach via SSH.  
