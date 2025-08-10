@@ -22,7 +22,7 @@
 - chatgpt
 - deepseek
 - kimi ai
-- gemini
+- gemini <---- use to help with this document
 - claude
 - hugging face <--- careful it's a black hole in the best possible way!
 
