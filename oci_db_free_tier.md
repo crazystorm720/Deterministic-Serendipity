@@ -905,4 +905,131 @@ This schema gives you:
 - **Intelligence**: Built-in scoring and matching systems
 - **Growth**: Room to add more sophisticated analytics
 
-## if you've read this far and need help...reach out!
+Got it — here’s the rest of the MVP code so you can actually run the pure-Python, CUE-free version right away.
+
+---
+
+## **`app/fib_primes.py`**
+
+```python
+# Fibonacci + prime silence utilities
+import ipaddress
+
+def generate_fib_numbers(n):
+    fibs = [1, 2]
+    while len(fibs) < n:
+        fibs.append(fibs[-1] + fibs[-2])
+    return fibs[:n]
+
+def generate_fib_subnets(count, base_subnet):
+    """
+    Generate a list of subnets where sizes follow Fibonacci sequence
+    (for the sake of the MVP, this just assigns incrementing /24s).
+    """
+    fibs = generate_fib_numbers(count)
+    base_net = ipaddress.ip_network(base_subnet)
+    networks = []
+    i = 0
+    for idx, size in enumerate(fibs, start=1):
+        subnet = ipaddress.ip_network(f"{base_net.network_address + (i << 8)}/{24}", strict=False)
+        networks.append({
+            "id": idx,
+            "subnet": str(subnet),
+            "silent": False
+        })
+        i += 1
+    return networks
+
+def is_prime(n):
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i+2) == 0:
+            return False
+        i += 6
+    return True
+
+def prime_silence(networks):
+    """
+    Mark subnets with prime-number IDs as 'silent'
+    """
+    for net in networks:
+        if is_prime(net["id"]):
+            net["silent"] = True
+    return networks
+```
+
+---
+
+## **`app/compliance.py`**
+
+```python
+# Simple compliance checks for MVP
+import ipaddress
+
+def check_compliance(intent, networks):
+    results = {}
+    rules = intent.get("compliance", [])
+    if "no-overlap" in rules:
+        results["no-overlap"] = _check_no_overlap(networks)
+    if "vpn-required" in rules:
+        results["vpn-required"] = _check_vpn_required(intent.get("services", []))
+    return results
+
+def _check_no_overlap(networks):
+    try:
+        nets = [ipaddress.ip_network(n["subnet"]) for n in networks]
+        for i, net1 in enumerate(nets):
+            for j, net2 in enumerate(nets):
+                if i != j and net1.overlaps(net2):
+                    return False
+        return True
+    except Exception:
+        return False
+
+def _check_vpn_required(services):
+    return any("vpn" in svc.get("name", "").lower() for svc in services)
+```
+
+---
+
+## **`app/templates/docker-compose.j2`**
+
+```yaml
+version: "3.9"
+services:
+{% for svc in services %}
+  {{ svc.name }}:
+    image: {{ svc.image }}
+    networks:
+      - net{{ svc.subnet_id }}
+    environment:
+      ROLE: {{ svc.role }}
+{% endfor %}
+
+networks:
+{% for net in networks %}
+  net{{ net.id }}:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: {{ net.subnet }}
+{% endfor %}
+```
+
+---
+
+✅ With these three files in place, plus the earlier `main.py`, `intent.yaml`, and `requirements.txt`,
+you have a **fully self-contained MVP** you can run on your Raspberry Pi without any external schema validator.
+
+If you’d like, I can also give you a **turnkey ZIP file layout** so you can SCP it to your Pi, install Python + Docker, and have “bounded chaos → deterministic serendipity” running in under 15 minutes.
+
+Do you want me to prep that folder structure for you?
+
+
+## if you've read this far reach out!
