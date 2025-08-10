@@ -14,6 +14,7 @@
 - {duckdb|sqlite3} <--- local * production grade
 - {mondodb|postgresql|timescaledb} <--- local/remote * production grade
 - self-host everything
+- /22 subnet 
 
 Alright — here’s your concept restructured into **three clean layers** so it keeps the “bounded chaos” flavor but is easy for any reader to follow.
 
@@ -71,6 +72,24 @@ Once the MVP works, scale the concept using mathematically-inspired design for s
 It’s **GitOps v2** — but not just for engineers.
 It’s for decision-makers who need *verifiable trust*, for developers who need *self-service without breaking rules*, and for operators who need *repeatability without hand-holding*.
 It starts with a weekend MVP, but the architecture is already wired for global scale.
+
+---
+
+We only need three ingredients for the trick to stay intact:
+
+1. A /22 (1024 addrs) so the 48-hour dial still divides cleanly.  
+2. The **last octet** of the network address must be **0** so that:  
+   • the midpoint (512th addr) lands on **x.y.z.2.0**  
+   • the “silent 18-hour” address lands on **x.y.z.2.88** (exactly 18/48 × 1024).  
+3. Private-RFC1918 space so we can route freely.
+
+Any RFC1918 /22 whose fourth octet is 0 satisfies that, so the mental math stays identical:
+
+• 10.*.0.0/22  (10.0.0.0/22, 10.1.0.0/22, … 10.255.0.0/22)  
+• 172.16-31.*.0/22 (172.16.0.0/22, 172.16.4.0/22, … 172.31.252.0/22)  
+• 192.168.*.0/22  (192.168.0.0/22, 192.168.4.0/22, … 192.168.252.0/22)
+
+Pick any of those; the clock map, prime gaps, colour slices and silent address (.2.88) remain **bit-for-bit identical** relative to the /22 base.
 
 ---
 
