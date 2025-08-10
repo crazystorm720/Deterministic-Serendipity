@@ -14,7 +14,15 @@
 - {duckdb|sqlite3} <--- local * production grade
 - {mondodb|postgresql|timescaledb} <--- local/remote * production grade
 - self-host everything
-- /22 subnet 
+- /22 subnet
+
+## llm
+- chatgpt
+- deepseek
+- kimi ai
+- gemini
+- claude
+- hugging face <--- careful it's a black hole in the best possible way!
 
 Alright — here’s your concept restructured into **three clean layers** so it keeps the “bounded chaos” flavor but is easy for any reader to follow.
 
