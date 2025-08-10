@@ -1572,4 +1572,4 @@ If you’d like, I can also give you a **turnkey ZIP file layout** so you can SC
 Do you want me to prep that folder structure for you?
 
 
-## if you've read this far reach out!
+## if you've read this far reach out!  this is a complete datadump of more ideas to tie everything together.  it's about learning abstracting and applying rigor or in this case fibs to debine order
