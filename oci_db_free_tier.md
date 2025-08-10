@@ -2,6 +2,221 @@
 
 ---
 
+Certainly! Let's break down the process of creating the prompt that would lead to the documented project structure and steps. This will help you understand how to recursively distill the project into a clear and actionable prompt.
+
+### Recursive Prompt Creation
+
+#### Step 1: Define the Project Goal
+Create a simple weather dashboard using Go, Docker, and Docker Compose. The application should fetch weather data from the OpenWeatherMap API and display it on a web page. The configuration, including the API key, should be managed through a YAML file.
+
+#### Step 2: Outline the Project Structure
+Define the folder structure for the project:
+```
+weather-dashboard/
+├── api/
+│   ├── main.go
+│   └── go.mod
+├── config/
+│   └── config.yaml
+├── templates/
+│   └── index.html.j2
+├── Dockerfile
+└── docker-compose.yaml
+```
+
+#### Step 3: Detail the Steps
+1. **Set Up Your Environment**: Ensure your Raspberry Pi is set up and running Arch Linux. Install Docker and Docker Compose.
+2. **Fetch Weather Data**: Create a Go script to fetch weather data from the OpenWeatherMap API, using the API key from the YAML configuration file.
+3. **Configuration File**: Store your API key and city in a YAML configuration file.
+4. **Generate HTML Content**: Use a Jinja2 template to generate HTML content dynamically.
+5. **Containerize Your Application**: Create a Dockerfile to build your Go application.
+6. **Define Docker Compose**: Use Docker Compose to define and run your application, including the configuration file.
+
+#### Step 4: Write the Prompt
+Here is the prompt that encapsulates all the steps and details:
+
+---
+
+### Prompt
+
+**Project: Simple Weather Dashboard Using Docker**
+
+**Goal**: Create a simple weather dashboard using Go, Docker, and Docker Compose. The application should fetch weather data from the OpenWeatherMap API and display it on a web page. The configuration, including the API key, should be managed through a YAML file.
+
+**Project Structure**:
+```
+weather-dashboard/
+├── api/
+│   ├── main.go
+│   └── go.mod
+├── config/
+│   └── config.yaml
+├── templates/
+│   └── index.html.j2
+├── Dockerfile
+└── docker-compose.yaml
+```
+
+**Steps**:
+
+1. **Set Up Your Environment**:
+   - Ensure your Raspberry Pi is set up and running Arch Linux.
+   - Install Docker and Docker Compose.
+     ```bash
+     sudo pacman -S docker docker-compose
+     sudo systemctl enable --now docker
+     sudo usermod -aG docker $USER
+     ```
+
+2. **Fetch Weather Data**:
+   - Create a Go script to fetch weather data from the OpenWeatherMap API, using the API key from the YAML configuration file.
+   - **`api/main.go`**:
+     ```go
+     package main
+
+     import (
+         "encoding/json"
+         "fmt"
+         "io/ioutil"
+         "log"
+         "net/http"
+         "os"
+
+         "gopkg.in/yaml.v2"
+     )
+
+     type Config struct {
+         APIKey string `yaml:"api_key"`
+         City   string `yaml:"city"`
+     }
+
+     type WeatherData struct {
+         Main struct {
+             Temp float64 `json:"temp"`
+         } `json:"main"`
+         Name string `json:"name"`
+     }
+
+     func main() {
+         var config Config
+         configData, err := ioutil.ReadFile("config/config.yaml")
+         if err != nil {
+             log.Fatalf("Error reading config file: %v", err)
+         }
+         err = yaml.Unmarshal(configData, &config)
+         if err != nil {
+             log.Fatalf("Error unmarshalling config file: %v", err)
+         }
+
+         url := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric", config.City, config.APIKey)
+
+         resp, err := http.Get(url)
+         if err != nil {
+             fmt.Println("Error fetching data:", err)
+             return
+         }
+         defer resp.Body.Close()
+
+         body, err := ioutil.ReadAll(resp.Body)
+         if err != nil {
+             fmt.Println("Error reading response:", err)
+             return
+         }
+
+         var weatherData WeatherData
+         err = json.Unmarshal(body, &weatherData)
+         if err != nil {
+             fmt.Println("Error unmarshalling data:", err)
+             return
+         }
+
+         fmt.Printf("Weather in %s: %.2f°C\n", weatherData.Name, weatherData.Main.Temp)
+     }
+     ```
+
+   - **`api/go.mod`**:
+     ```go
+     module weather-api
+
+     go 1.18
+
+     require gopkg.in/yaml.v2
+     ```
+
+3. **Configuration File**:
+   - Store your API key and city in a YAML configuration file.
+   - **`config/config.yaml`**:
+     ```yaml
+     api_key: "YOUR_API_KEY"
+     city: "London"
+     ```
+
+4. **Generate HTML Content**:
+   - Use a Jinja2 template to generate HTML content dynamically.
+   - **`templates/index.html.j2`**:
+     ```html
+     <!DOCTYPE html>
+     <html>
+     <head>
+         <title>Weather Dashboard</title>
+     </head>
+     <body>
+         <h1>Weather in {{ name }}</h1>
+         <p>Temperature: {{ temp }}°C</p>
+     </body>
+     </html>
+     ```
+
+5. **Containerize Your Application**:
+   - Create a Dockerfile to build your Go application.
+   - **`Dockerfile`**:
+     ```dockerfile
+     FROM golang:1.18-alpine as builder
+     WORKDIR /app
+     COPY api/ .
+     RUN go build -o weather
+
+     FROM alpine:latest
+     COPY --from=builder /app/weather /bin/weather
+     CMD ["/bin/weather"]
+     ```
+
+6. **Define Docker Compose**:
+   - Use Docker Compose to define and run your application, including the configuration file.
+   - **`docker-compose.yaml`**:
+     ```yaml
+     version: '3'
+     services:
+       weather:
+         build: .
+         ports:
+           - "8080:8080"
+         volumes:
+           - ./config:/config
+           - ./templates:/templates
+     ```
+
+**Running the Project**:
+1. **Build and Run with Docker Compose**:
+   ```bash
+   docker-compose up --build
+   ```
+
+**Explanation**:
+- **Go Script**: Fetches weather data from the OpenWeatherMap API using the API key from the YAML configuration file.
+- **YAML Configuration**: Stores the API key and city for the weather API.
+- **Jinja2 Template**: Generates HTML content dynamically.
+- **Dockerfile**: Builds a Docker image for the Go application.
+- **Docker Compose**: Defines and runs the Docker container, mapping the necessary ports and volumes, including the configuration file.
+
+This setup ensures that your configuration is managed separately from your code, making it easier to update and maintain. It also aligns with best practices for managing sensitive information like API keys.
+
+---
+
+This prompt provides a clear and actionable guide to setting up the project. It includes all the necessary details and steps to ensure that anyone following it can successfully create the weather dashboard.
+
+---
+
 ## **I. Narrative Layer — “Bounded Chaos → Deterministic Serendipity”**
 
 **Pitch Script:**
