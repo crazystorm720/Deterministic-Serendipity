@@ -833,6 +833,7 @@ def main():
     nets = prime_silence(nets)
     print("Networks (after prime silence):")
     for n in nets:
+    too lazy to trim the raw data so little by little I'll clean this up but until then - LGTM 👍
         print(n)
     # 4. Compliance checks
     compliance = check_compliance(intent, nets)
@@ -1143,7 +1144,7 @@ Would you like me to elaborate on any of these analysis approaches or suggest sp
 
 ## **Database Schema for Grants Intelligence**
 
-### **Core Tables Structure**
+### **Core Tables Structure** too lazy to trim the raw data so little by little I'll clean this up but until then - LGTM 👍
 
 ```sql
 -- Raw grants data from Grants.gov
