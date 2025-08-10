@@ -6,6 +6,14 @@
 
 [getting_serious](https://github.com/crazystorm720/mandelbrot_set_generation)
 
+## tool kit
+- Golang/CUE
+- Python/Conda
+- Jinja2
+- Linux {arch|ubuntu}
+- {duckdb|sqlite3} <--- local * production grade
+- {mondodb|postgresql|timescaledb} <--- local/remote * production grade
+- self-host everything
 
 Alright — here’s your concept restructured into **three clean layers** so it keeps the “bounded chaos” flavor but is easy for any reader to follow.
 
