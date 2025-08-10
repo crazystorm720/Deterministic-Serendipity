@@ -1,5 +1,7 @@
 #### welcome to bounded chaos that leads to deterministic serendipity now go build some cool shit with this and be nice to your neighbors - it's your landlord that is the problem so fine...we will weapsonize the rules while following the rules all backed by oci using type safe predictive analysis aka PSYOP-GitOpsv2 :)
 
+[mqtt_nonsense](https://github.com/crazystorm720/room-occupancy-prediction-mqtt-meraki/tree/main)
+
 # Mathematical Certainty Platform
 ## Transforming Business Risk into Mathematical Guarantees
 
