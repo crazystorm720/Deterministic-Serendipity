@@ -220,6 +220,14 @@ It starts with a weekend MVP, but the architecture is already wired for global s
 
 ---
 
+Meta-CUE First Principles (≤ 50 words)
+
+1. **Upper Bound** – 1024 is the ceiling.  
+2. **Recursive Halving** – every child ≤ parent/2.  
+3. **Prime Gaps** – only prime indices carry state.  
+4. **ϕ Symmetry** – width ≈ height × 1.618, both ≤ 1024.  
+5. **Total Verification** – CUE rejects any value that breaks 1-4.
+
 We only need three ingredients for the trick to stay intact:
 
 1. A /22 (1024 addrs) so the 48-hour dial still divides cleanly.  
