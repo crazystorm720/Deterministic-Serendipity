@@ -3737,4 +3737,4 @@ dig +short AAAA ns-01.infra.mycorp.net @::1
 Result: you now have **dual-stack, zero-drift, haiku-grade addressing** without touching the existing IPv4 or ACME automation.
 
 
-## if you've read this far reach out!  this is a complete datadump of more ideas to tie everything together.  it's about learning abstracting and applying rigor or in this case fibs to debine order
+## if you've read this far reach out!  this is a complete datadump of more ideas to tie everything together.  it's about learning abstracting and applying rigor or in this case fibs to define order
