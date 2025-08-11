@@ -1,6 +1,6 @@
 ###### welcome to bounded chaos that leads to deterministic serendipity now go build some cool shit with this and be nice to your neighbors - it's your landlord that is the problem so fine...we will weapsonize the rules while following the rules all backed by oci using type safe predictive analysis aka PSYOP-GitOpsv2 :)
 
-#### to get started learn how to copy everything within this document.  it's a small 'tiled' squares on the RIGHT towards the top of this page NEXT TO THE WORDS raw.  once you have it copy paste into your favorite llm {small list below}. the llm will kick things off then you take things from there.  what are you interested in...business? truest? I've just provided a type safe way to accomplish this.  enjoy! :)
+#### to get started learn how to [copy](https://github.blog/changelog/2021-09-20-quickly-copy-the-contents-of-a-file-to-the-clipboard/) everything within this document.  it's a small 'tiled' squares on the RIGHT towards the top of this page NEXT TO THE WORDS raw.  once you have it copy paste into your favorite llm {small list below}. the llm will kick things off then you take things from there.  what are you interested in...business? truest? I've just provided a type safe way to accomplish this.  enjoy! :)
 
 [mqtt_nonsense](https://github.com/crazystorm720/room-occupancy-prediction-mqtt-meraki/tree/main)
 
